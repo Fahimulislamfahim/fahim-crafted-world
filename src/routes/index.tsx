@@ -164,29 +164,57 @@ function Portfolio() {
   }, []);
 
   return (
-    <main className="grain min-h-screen bg-background text-foreground overflow-x-hidden">
+    <>
       <Nav />
-      <Hero />
-      <Marquee />
-      <About />
-      <Skills />
-      <Projects />
-      <Initiatives />
-      <GithubSection />
-      <Education />
-      <Footer />
-    </main>
+      <main className="grain min-h-screen bg-background text-foreground overflow-x-hidden">
+        <Hero />
+        <Marquee />
+        <About />
+        <Skills />
+        <Projects />
+        <Initiatives />
+        <GithubSection />
+        <Education />
+        <Footer />
+      </main>
+    </>
   );
 }
 
 function Nav() {
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Fade in the navbar logo as the hero text flies up and fades out
+  const navLogoOpacity = useTransform(scrollY, [120, 200], [0, 1]);
+  
+  // Fade out availability on scroll down for a more minimal navbar
+  const navExtraOpacity = useTransform(scrollY, [0, 100], [1, 0]);
+
+  useEffect(() => {
+    return scrollY.on("change", (latest) => {
+      setIsScrolled(latest > 50);
+    });
+  }, [scrollY]);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-background/50 backdrop-blur-lg">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-10">
-        <a href="#top" className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300">
-          Fahim<span className="text-rust">.</span>
-        </a>
-        <nav className="hidden gap-8 font-mono text-xs uppercase tracking-widest md:flex">
+    <motion.header
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ease-in-out border-b ${
+        isScrolled
+          ? "border-white/5 bg-zinc-950/80 backdrop-blur-md py-3 shadow-md shadow-black/10"
+          : "border-transparent bg-transparent py-6"
+      }`}
+    >
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
+        {/* Left: Logo */}
+        <motion.div style={{ opacity: navLogoOpacity }} className="w-1/4 flex justify-start">
+          <a href="#top" className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300">
+            Fahim<span className="text-rust">.</span>
+          </a>
+        </motion.div>
+
+        {/* Middle: Navigation links */}
+        <nav className="flex justify-center gap-8 font-mono text-xs uppercase tracking-widest w-2/4">
           <a href="#work" className="hover:text-acid transition-colors duration-300 relative group">
             Work
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
@@ -204,22 +232,34 @@ function Nav() {
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
           </a>
         </nav>
-        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+
+        {/* Right: Availability status */}
+        <motion.div
+          style={{ opacity: navExtraOpacity }}
+          className="w-1/4 flex justify-end items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400"
+        >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acid opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-acid" />
           </span>
-          Available for work
-        </div>
+          <span className="hidden sm:inline">Available for work</span>
+        </motion.div>
       </div>
-    </header>
+    </motion.header>
   );
 }
 
 function Hero() {
   const ref = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+
+  // Scroll transforms to slide, scale, and fade the main title into the header logo position
+  const titleX = useTransform(scrollY, [0, 200], ["0vw", "-22vw"]);
+  const titleY = useTransform(scrollY, [0, 200], ["0px", "-160px"]);
+  const titleScale = useTransform(scrollY, [0, 200], [1, 0.16]);
+  const titleOpacity = useTransform(scrollY, [120, 200], [1, 0]);
 
   return (
     <section id="top" ref={ref} className="relative border-b border-white/5 overflow-hidden">
@@ -247,14 +287,24 @@ function Hero() {
 
         {/* Center: big type */}
         <div className="col-span-12 md:col-span-6">
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-[18vw] leading-[0.85] tracking-tight md:text-[10rem] select-none cursor-default"
           >
-            Fah<span className="italic text-rust hover:text-acid transition-colors duration-500">i</span>m
-          </motion.h1>
+            <motion.h1
+              style={{
+                x: titleX,
+                y: titleY,
+                scale: titleScale,
+                opacity: titleOpacity,
+                transformOrigin: "left center"
+              }}
+              className="font-display text-[18vw] leading-[0.85] tracking-tight md:text-[10rem] select-none cursor-default"
+            >
+              Fah<span className="italic text-rust hover:text-acid transition-colors duration-500">i</span>m
+            </motion.h1>
+          </motion.div>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
