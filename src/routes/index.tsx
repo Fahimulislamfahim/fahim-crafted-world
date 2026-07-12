@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "motion/react";
 import { useRef, useState, useEffect } from "react";
 import Lenis from "lenis";
+import { useIsMobile } from "../hooks/use-mobile";
 import {
   ArrowUpRight,
   Github,
@@ -17,6 +18,91 @@ import {
   Linkedin,
   Globe,
 } from "lucide-react";
+
+function CustomCursor() {
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  
+  const springConfig = { damping: 32, stiffness: 380, mass: 0.4 };
+  const cursorXSpring = useSpring(cursorX, springConfig);
+  const cursorYSpring = useSpring(cursorY, springConfig);
+
+  const [cursorType, setCursorType] = useState<"default" | "hover" | "project" | "scan">("default");
+  const [hoverText, setHoverText] = useState("");
+
+  useEffect(() => {
+    const moveCursor = (e: MouseEvent) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+    };
+
+    window.addEventListener("mousemove", moveCursor);
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      const isClickable = target.closest("a, button, [role='button'], input, select, textarea");
+      const cursorText = target.closest("[data-cursor-text]")?.getAttribute("data-cursor-text");
+      const cursorState = target.closest("[data-cursor-state]")?.getAttribute("data-cursor-state");
+
+      if (cursorText) {
+        setCursorType("project");
+        setHoverText(cursorText);
+      } else if (cursorState === "scan") {
+        setCursorType("scan");
+      } else if (isClickable) {
+        setCursorType("hover");
+      } else {
+        setCursorType("default");
+      }
+    };
+
+    window.addEventListener("mouseover", handleMouseOver);
+
+    return () => {
+      window.removeEventListener("mousemove", moveCursor);
+      window.removeEventListener("mouseover", handleMouseOver);
+    };
+  }, [cursorX, cursorY]);
+
+  const isMobile = useIsMobile();
+  if (isMobile) return null;
+
+  return (
+    <motion.div
+      style={{
+        x: cursorXSpring,
+        y: cursorYSpring,
+        translateX: "-50%",
+        translateY: "-50%",
+      }}
+      className={`fixed top-0 left-0 pointer-events-none z-50 rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        cursorType === "hover"
+          ? "w-10 h-10 border border-acid/60 bg-acid/5 scale-100"
+          : cursorType === "project"
+            ? "w-20 h-20 border border-rust bg-rust/15 scale-100"
+            : cursorType === "scan"
+              ? "w-14 h-14 border border-acid/80 bg-transparent rotate-45"
+              : "w-6 h-6 border border-white/20 bg-transparent"
+      }`}
+    >
+      {cursorType === "project" && (
+        <span className="font-mono text-[8px] uppercase tracking-widest text-rust font-bold">
+          {hoverText}
+        </span>
+      )}
+      {cursorType === "default" && (
+        <div className="w-1 h-1 rounded-full bg-white/60" />
+      )}
+      {cursorType === "hover" && (
+        <div className="w-1.5 h-1.5 rounded-full bg-acid" />
+      )}
+      {cursorType === "scan" && (
+        <div className="w-2 h-2 rounded-sm bg-acid/70 animate-pulse" />
+      )}
+    </motion.div>
+  );
+}
 
 export const Route = createFileRoute("/")({
   component: Portfolio,
@@ -178,6 +264,7 @@ function Portfolio() {
 
   return (
     <>
+      <CustomCursor />
       <Nav />
       <main className="grain min-h-screen bg-background text-foreground overflow-x-hidden">
         <Hero />
@@ -316,21 +403,31 @@ function Hero() {
               }}
               className="font-display text-[18vw] leading-[0.85] tracking-tight md:text-[10rem] select-none cursor-default"
             >
-              <span
+              <motion.span
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                 onMouseEnter={() => setIsNameHovered(true)}
                 onMouseLeave={() => setIsNameHovered(false)}
-                className="hover:text-rust transition-colors duration-500 cursor-pointer"
-              >Fah</span>
-              <span 
+                className="hover:text-rust transition-colors duration-500 cursor-pointer inline-block"
+              >Fah</motion.span>
+              <motion.span 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
                 onMouseEnter={() => setIsIHovered(true)}
                 onMouseLeave={() => setIsIHovered(false)}
-                className="italic text-rust hover:text-acid transition-colors duration-500 cursor-pointer"
-              >i</span>
-              <span
+                className="italic text-rust hover:text-acid transition-colors duration-500 cursor-pointer inline-block"
+                data-cursor-state="scan"
+              >i</motion.span>
+              <motion.span
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
                 onMouseEnter={() => setIsNameHovered(true)}
                 onMouseLeave={() => setIsNameHovered(false)}
-                className="hover:text-rust transition-colors duration-500 cursor-pointer"
-              >m</span>
+                className="hover:text-rust transition-colors duration-500 cursor-pointer inline-block"
+              >m</motion.span>
             </motion.h1>
           </motion.div>
           <motion.p
@@ -516,6 +613,282 @@ function About() {
   );
 }
 
+function RiderDashboard() {
+  const [isEngineOn, setIsEngineOn] = useState(false);
+  const [speed, setSpeed] = useState(0);
+  const [rpm, setRpm] = useState(1000);
+  const [gear, setGear] = useState(1);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+    cardRef.current.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    cardRef.current.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  };
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isEngineOn) {
+      interval = setInterval(() => {
+        setSpeed((prev) => {
+          const target = isHovered ? 134 : 74;
+          const diff = target - prev;
+          return Math.round(prev + diff * 0.08 + (Math.random() - 0.5) * 2);
+        });
+        setRpm((prev) => {
+          const target = isHovered ? 8200 : 3100;
+          const diff = target - prev;
+          return Math.round(prev + diff * 0.12 + (Math.random() - 0.5) * 120);
+        });
+        setGear((prev) => {
+          if (speed > 90) return 5;
+          if (speed > 65) return 4;
+          if (speed > 40) return 3;
+          if (speed > 18) return 2;
+          return 1;
+        });
+      }, 50);
+    } else {
+      interval = setInterval(() => {
+        setSpeed((prev) => (prev > 0 ? Math.max(0, prev - 4) : 0));
+        setRpm((prev) => (prev > 1000 ? Math.max(1000, prev - 150) : 1000));
+        setGear(1);
+      }, 50);
+    }
+    return () => clearInterval(interval);
+  }, [isEngineOn, isHovered, speed]);
+
+  const maxRpm = 10000;
+  const rpmRotation = ((rpm - 1000) / (maxRpm - 1000)) * 240 - 120;
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      className="glow-card-rust border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none"
+    >
+      <div className="glow-bg" />
+      <div className="absolute inset-0 dashboard-grid-pattern opacity-[0.12] pointer-events-none" />
+      
+      <div className="flex justify-between items-center relative z-10 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
+        <span className="flex items-center gap-1.5">
+          <Bike className="h-3.5 w-3.5 text-rust animate-pulse" /> DUSK RIDER DASH
+        </span>
+        <button
+          onClick={() => setIsEngineOn(!isEngineOn)}
+          className={`px-3 py-1 rounded-full border text-[8px] transition-all duration-300 font-bold cursor-pointer ${
+            isEngineOn
+              ? "border-rust bg-rust/20 text-rust shadow-[0_0_12px_rgba(217,119,6,0.3)] animate-pulse"
+              : "border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+          }`}
+          data-cursor-text={isEngineOn ? "STOP" : "START"}
+        >
+          {isEngineOn ? "IGNITION ON" : "IGNITION OFF"}
+        </button>
+      </div>
+
+      <div className="my-6 flex items-center justify-around gap-4 relative z-10">
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <svg className="w-full h-full transform -rotate-90 animate-[pulse-soft_4s_infinite]" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="transparent"
+              stroke="rgba(255,255,255,0.05)"
+              strokeWidth="4"
+              strokeDasharray="180 360"
+              strokeLinecap="round"
+              className="transform rotate-30 origin-center"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="transparent"
+              stroke="var(--color-rust)"
+              strokeWidth="4"
+              strokeDasharray={`${((rpm - 1000) / 9000) * 180} 360`}
+              strokeLinecap="round"
+              className="transform rotate-30 origin-center opacity-40 blur-[1px] transition-all duration-75"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="transparent"
+              stroke="var(--color-rust)"
+              strokeWidth="3"
+              strokeDasharray={`${((rpm - 1000) / 9000) * 180} 360`}
+              strokeLinecap="round"
+              className="transform rotate-30 origin-center transition-all duration-75"
+            />
+          </svg>
+          
+          <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
+            <span className="font-mono text-xl font-bold leading-none tracking-tight text-white">
+              {isEngineOn ? speed : "0"}
+            </span>
+            <span className="text-[7px] font-mono text-zinc-500 uppercase tracking-widest mt-0.5">KM/H</span>
+          </div>
+
+          <div
+            className="absolute inset-0 transition-transform duration-75 ease-out pointer-events-none"
+            style={{ transform: `rotate(${rpmRotation}deg)` }}
+          >
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-8 bg-rust rounded-full shadow-[0_0_8px_var(--color-rust)]" />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 font-mono text-[9px] w-24">
+          <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
+            <span className="text-zinc-500">RPM:</span>
+            <span className={`font-bold transition-all ${isEngineOn ? "text-rust" : "text-zinc-400"}`}>
+              {isEngineOn ? rpm : "0"}
+            </span>
+          </div>
+          <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
+            <span className="text-zinc-500">GEAR:</span>
+            <span className={`font-bold ${isEngineOn ? "text-white animate-pulse" : "text-zinc-400"}`}>
+              {isEngineOn ? gear : "-"}
+            </span>
+          </div>
+          <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
+            <span className="text-zinc-500">THR:</span>
+            <span className="text-white font-bold">{isHovered && isEngineOn ? "REVVED" : "IDLE"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 border-t border-white/5 pt-4">
+        <div className="flex justify-between items-center font-mono text-[8px] text-zinc-500 uppercase tracking-widest mb-1.5">
+          <span>Active Route: Dhaka - DIU</span>
+          <span className={`${isEngineOn ? "text-emerald-400 animate-pulse font-bold" : "text-zinc-600"}`}>
+            {isEngineOn ? "● ACTIVE TRACKING" : "STANDBY"}
+          </span>
+        </div>
+        <div className="h-8 w-full bg-zinc-950/40 rounded border border-white/5 relative overflow-hidden flex items-center px-4">
+          <svg className="w-full h-full text-zinc-800" viewBox="0 0 200 40">
+            <path
+              id="route-path"
+              d="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+            />
+            {isEngineOn && (
+              <motion.path
+                d="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
+                fill="none"
+                stroke="var(--color-rust)"
+                strokeWidth="1.5"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            )}
+            {isEngineOn && (
+              <circle r="3.5" fill="var(--color-acid)" className="shadow-[0_0_8px_var(--color-acid)]">
+                <animateMotion
+                  path="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
+                  dur="6s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            )}
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SkillCard({ s, i }: { s: typeof skills[0]; i: number }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { damping: 24, stiffness: 220 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { damping: 24, stiffness: 220 });
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const relativeX = (e.clientX - rect.left) / rect.width - 0.5;
+    const relativeY = (e.clientY - rect.top) / rect.height - 0.5;
+    
+    x.set(relativeX);
+    y.set(relativeY);
+
+    cardRef.current.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    cardRef.current.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  const glowClasses = [
+    "glow-card-acid",
+    "glow-card-neutral",
+    "glow-card-neutral",
+    "glow-card-rust",
+    "glow-card-acid",
+  ];
+  const glowClass = glowClasses[i] || "glow-card-neutral";
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+      }}
+      className={`group relative bg-white/[0.01] border border-white/5 p-8 hover:bg-white/[0.02] hover:border-white/10 rounded-2xl overflow-hidden transition-colors duration-300 ${glowClass}`}
+    >
+      <div className="glow-bg" />
+      <div style={{ transform: "translateZ(20px)" }} className="relative z-10">
+        <div className="flex items-center justify-between">
+          <s.icon className="h-6 w-6 text-zinc-400 group-hover:text-acid transition-colors duration-300" />
+          <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 group-hover:text-white transition-colors">
+            0{i + 1}
+          </span>
+        </div>
+        <h3 className="mt-8 font-display text-3xl text-zinc-100 group-hover:text-white transition-colors">
+          {s.title}
+        </h3>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {s.items.map((item) => (
+            <li
+              key={item}
+              className="rounded-full border border-white/5 bg-white/[0.02] px-3 py-1 font-mono text-[10px] tracking-wide text-zinc-400 group-hover:text-white group-hover:border-white/15 transition-all duration-300"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </motion.div>
+  );
+}
+
 function Skills() {
   return (
     <motion.section 
@@ -524,7 +897,7 @@ function Skills() {
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
       variants={sectionVariants}
-      className="border-b border-white/5 bg-white/[0.005]"
+      className="border-b border-white/5 bg-white/[0.002]"
     >
       <div className="mx-auto max-w-[1400px] px-6 py-24 md:px-10 md:py-32">
         <div className="flex items-end justify-between border-b border-white/10 pb-6">
@@ -532,7 +905,7 @@ function Skills() {
             <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
               § 03 — Stack
             </div>
-            <h2 className="mt-2 font-display text-4xl md:text-6xl">The toolkit.</h2>
+            <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100">The toolkit.</h2>
           </div>
           <div className="hidden font-mono text-xs uppercase tracking-widest text-zinc-500 md:block">
             05 disciplines
@@ -541,45 +914,12 @@ function Skills() {
 
         <motion.div 
           variants={staggerContainer}
-          className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+          className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 perspective-1000"
         >
           {skills.map((s, i) => (
-            <motion.div
-              key={s.title}
-              variants={fadeInReveal}
-              className="group relative bg-white/[0.01] border border-white/5 p-8 hover:bg-white/[0.03] hover:border-white/10 rounded-2xl overflow-hidden transition-all duration-300"
-            >
-              {/* Top border glow effect */}
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-acid/30 transition-all duration-500" />
-              
-              <div className="flex items-center justify-between">
-                <s.icon className="h-6 w-6 text-zinc-400 group-hover:text-acid transition-colors duration-300" />
-                <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 group-hover:text-white transition-colors">
-                  0{i + 1}
-                </span>
-              </div>
-              <h3 className="mt-8 font-display text-3xl text-zinc-100 group-hover:text-white transition-colors">{s.title}</h3>
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {s.items.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-full border border-white/5 bg-white/[0.02] px-3 py-1 font-mono text-[10px] tracking-wide text-zinc-400 group-hover:text-white group-hover:border-white/15 transition-all duration-300"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+            <SkillCard key={s.title} s={s} i={i} />
           ))}
-          <div className="border border-white/5 bg-zinc-950/40 p-8 rounded-2xl flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-rust/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-              Currently
-            </div>
-            <p className="mt-6 font-display text-2xl italic leading-tight text-zinc-300">
-              "Exploring how far a solo developer can push AI-native product architecture."
-            </p>
-          </div>
+          <RiderDashboard />
         </motion.div>
       </div>
     </motion.section>
@@ -800,6 +1140,7 @@ function Projects() {
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
               className="group block relative border-b border-white/5 py-8 transition-all duration-300 hover:bg-white/[0.01] px-4 cursor-pointer"
+              data-cursor-text="SOURCE"
             >
               <div className="mx-auto grid grid-cols-12 items-baseline gap-4">
                 <span className="col-span-2 font-mono text-xs text-zinc-600 group-hover:text-white transition-colors duration-300 md:col-span-1">{p.n}</span>

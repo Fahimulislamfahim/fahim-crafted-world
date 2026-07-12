@@ -113,3 +113,119 @@ html.lenis, html.lenis body {
 .lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* Creative Design & Interactive Smoothing Utilities */
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Mouse-tracking border glow card */
+.glow-card-acid, .glow-card-rust, .glow-card-neutral {
+  position: relative;
+}
+
+.glow-card-acid::before, .glow-card-rust::before, .glow-card-neutral::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px; /* border thickness */
+  background: radial-gradient(
+    250px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+    var(--glow-color, rgba(255, 255, 255, 0.15)),
+    transparent 60%
+  );
+  -webkit-mask: 
+     linear-gradient(#fff 0 0) content-box, 
+     linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.glow-card-acid:hover::before, .glow-card-rust:hover::before, .glow-card-neutral:hover::before {
+  opacity: 1;
+}
+
+.glow-card-acid {
+  --glow-color: rgba(217, 249, 157, 0.25);
+}
+
+.glow-card-rust {
+  --glow-color: rgba(217, 119, 6, 0.25);
+}
+
+.glow-card-neutral {
+  --glow-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Card inner radial glow */
+.glow-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    300px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+    var(--glow-bg-color, rgba(255, 255, 255, 0.02)),
+    transparent 80%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.glow-card-acid:hover .glow-bg {
+  --glow-bg-color: rgba(217, 249, 157, 0.025);
+  opacity: 1;
+}
+
+.glow-card-rust:hover .glow-bg {
+  --glow-bg-color: rgba(217, 119, 6, 0.025);
+  opacity: 1;
+}
+
+.glow-card-neutral:hover .glow-bg {
+  --glow-bg-color: rgba(255, 255, 255, 0.015);
+  opacity: 1;
+}
+
+/* Interactive Dashboard & Neon Glows */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.2; transform: scale(0.98); }
+  50% { opacity: 0.6; transform: scale(1.02); }
+}
+
+.glow-glow {
+  filter: drop-shadow(0 0 8px var(--glow-color, currentColor));
+}
+
+.dash-neon-acid {
+  color: var(--color-acid);
+  --glow-color: oklch(0.85 0.16 115 / 0.4);
+}
+
+.dash-neon-rust {
+  color: var(--color-rust);
+  --glow-color: oklch(0.65 0.18 35 / 0.4);
+}
+
+/* Dashboard grid lines */
+.dashboard-grid-pattern {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
