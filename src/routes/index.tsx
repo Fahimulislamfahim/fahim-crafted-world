@@ -13,23 +13,29 @@ import {
   Terminal,
   Cloud,
   Smartphone,
+  Facebook,
+  Linkedin,
+  Globe,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Portfolio,
   head: () => ({
     meta: [
-      { title: "Fahim — Cross-Platform App Developer" },
+      { title: "Fahimul Islam" },
       {
         name: "description",
         content:
-          "Portfolio of Fahim — 3rd year Software Engineering student at DIU, Dhaka. Flutter apps, AI automation, and multi-channel SaaS architecture.",
+          "Portfolio of Fahimul Islam — 3rd year Software Engineering student at DIU, Dhaka. Flutter apps, AI automation, and multi-channel SaaS architecture.",
       },
     ],
   }),
 });
 
 const GITHUB = "https://github.com/Fahimulislamfahim";
+const FACEBOOK = "https://www.facebook.com/Fahim.01533335214/";
+const LINKEDIN = "https://www.linkedin.com/in/fahimulislam86/";
+const THREADS = "https://www.threads.net/@fahim.0.1";
 
 const skills = [
   {
@@ -62,59 +68,48 @@ const skills = [
 const projects = [
   {
     n: "01",
-    name: "Replixon",
+    name: "Personify",
     tag: "SaaS · AI",
-    year: "2025",
-    desc: "Multi-channel AI customer interaction SaaS platform with a 3D-responsive landing page. Deployed on Vercel.",
+    year: "2026",
+    desc: "AI-powered Social Media Management (SMM) SaaS with a multi-agent Google Gemini pipeline & high-fidelity Flutter dashboard.",
     accent: "acid",
+    github: "https://github.com/Fahimulislamfahim/Personify.git",
   },
   {
     n: "02",
-    name: "Mill n Chill",
-    tag: "Mobile · Mess Mgmt",
-    year: "2025",
-    desc: "Shared-living mess manager: financial splits, meal tracking, daily expenses. Tested in the real world with flatmates.",
-    accent: "rust",
+    name: "CoRide",
+    tag: "Mobile · Rideshare",
+    year: "2026",
+    desc: "Campus ridesharing & carpooling platform for DIU using WebSocket tracking, geospatial pricing, and Flutter.",
+    accent: "acid",
+    github: "https://github.com/Fahimulislamfahim/CoRide.git",
   },
   {
     n: "03",
-    name: "InstaMiner / InstaRise",
+    name: "InstaRise",
     tag: "Automation · Growth",
     year: "2024",
-    desc: "Autonomous Instagram automation & follower growth engine built on a custom architecture workflow.",
+    desc: "Autonomous Instagram automation & follower growth engine built on a custom queue/action workflow.",
     accent: "rust",
+    github: "https://github.com/Fahimulislamfahim/InstaRise.git",
   },
   {
     n: "04",
     name: "MotoFile",
     tag: "Mobile · Utility",
     year: "2024",
-    desc: "Digital vehicle documentation vault — riders securely store and manage essential bike papers.",
+    desc: "Digital vehicle documentation vault enabling riders to securely store, verify and manage essential papers.",
     accent: "acid",
+    github: "https://github.com/Fahimulislamfahim/MotoFile.git",
   },
   {
     n: "05",
-    name: "Bike Corner",
-    tag: "Inventory · Web",
-    year: "2024",
-    desc: "Full inventory system tracking buying & selling of second-hand motorcycles.",
+    name: "BikeShopBd",
+    tag: "E-Commerce · Web",
+    year: "2025",
+    desc: "Complete motorcycle and parts e-commerce retail platform featuring custom booking & parts ordering.",
     accent: "rust",
-  },
-  {
-    n: "06",
-    name: "Police Kothay",
-    tag: "Maps · Civic",
-    year: "2024",
-    desc: "Map-based web app tracking real-time urban checkposts with dynamic confirmation counts & update-time logic.",
-    accent: "acid",
-  },
-  {
-    n: "07",
-    name: "Weather & Crop Advisor",
-    tag: "Academic · SRS",
-    year: "2024",
-    desc: "Collaborative academic project — SRS, stakeholder requirements & DFDs to help farmers optimize yields.",
-    accent: "acid",
+    github: "https://github.com/Fahimulislamfahim/BikeShopBd.git",
   },
 ];
 
@@ -151,6 +146,23 @@ function Portfolio() {
       wheelMultiplier: 1.05,
     });
 
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+      if (anchor) {
+        const href = anchor.getAttribute("href");
+        if (href && href.startsWith("#")) {
+          e.preventDefault();
+          const targetElement = document.querySelector(href);
+          if (targetElement) {
+            lenis.scrollTo(targetElement);
+          }
+        }
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick);
+
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -159,6 +171,7 @@ function Portfolio() {
     requestAnimationFrame(raf);
 
     return () => {
+      document.removeEventListener("click", handleAnchorClick);
       lenis.destroy();
     };
   }, []);
@@ -172,7 +185,6 @@ function Portfolio() {
         <About />
         <Skills />
         <Projects />
-        <Initiatives />
         <GithubSection />
         <Education />
         <Footer />
@@ -250,6 +262,8 @@ function Nav() {
 }
 
 function Hero() {
+  const [isIHovered, setIsIHovered] = useState(false);
+  const [isNameHovered, setIsNameHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -302,7 +316,21 @@ function Hero() {
               }}
               className="font-display text-[18vw] leading-[0.85] tracking-tight md:text-[10rem] select-none cursor-default"
             >
-              Fah<span className="italic text-rust hover:text-acid transition-colors duration-500">i</span>m
+              <span
+                onMouseEnter={() => setIsNameHovered(true)}
+                onMouseLeave={() => setIsNameHovered(false)}
+                className="hover:text-rust transition-colors duration-500 cursor-pointer"
+              >Fah</span>
+              <span 
+                onMouseEnter={() => setIsIHovered(true)}
+                onMouseLeave={() => setIsIHovered(false)}
+                className="italic text-rust hover:text-acid transition-colors duration-500 cursor-pointer"
+              >i</span>
+              <span
+                onMouseEnter={() => setIsNameHovered(true)}
+                onMouseLeave={() => setIsNameHovered(false)}
+                className="hover:text-rust transition-colors duration-500 cursor-pointer"
+              >m</span>
             </motion.h1>
           </motion.div>
           <motion.p
@@ -311,17 +339,13 @@ function Hero() {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="mt-6 max-w-lg text-lg leading-relaxed text-zinc-400 md:text-xl"
           >
-            Cross-platform app developer, full-stack builder & founder of{" "}
-            <span className="inline-block border border-acid/20 bg-acid/5 px-2.5 py-0.5 rounded-full text-xs text-acid tracking-widest font-mono uppercase">
-              VYNIX
-            </span>
-            . I ship Flutter apps, AI automation systems and SaaS platforms — from Dhaka.
+            Cross-platform app developer & full-stack builder. I ship Flutter apps, AI automation systems and SaaS platforms — from Dhaka.
           </motion.p>
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            className="mt-10 flex flex-wrap gap-4"
+            className="mt-10 flex flex-wrap items-center gap-4"
           >
             <a
               href="#work"
@@ -329,14 +353,44 @@ function Hero() {
             >
               See selected work <ArrowUpRight className="h-4 w-4 transition group-hover:rotate-45" />
             </a>
-            <a
-              href={GITHUB}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 font-mono text-xs uppercase tracking-widest text-white transition-all duration-300 hover:bg-white/10 hover:border-white/20"
-            >
-              <Github className="h-4 w-4 text-zinc-400" /> GitHub
-            </a>
+            
+            <div className="flex flex-wrap gap-2.5 items-center">
+              <a
+                href={GITHUB}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 font-mono text-xs uppercase tracking-widest text-white transition-all duration-300 hover:bg-white/10 hover:border-white/20"
+              >
+                <Github className="h-4 w-4 text-zinc-400" /> GitHub
+              </a>
+              <a
+                href={LINKEDIN}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                title="LinkedIn"
+              >
+                <Linkedin className="h-4 w-4" />
+              </a>
+              <a
+                href={FACEBOOK}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                title="Facebook"
+              >
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a
+                href={THREADS}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                title="Threads"
+              >
+                <Globe className="h-4 w-4" />
+              </a>
+            </div>
           </motion.div>
         </div>
 
@@ -345,18 +399,37 @@ function Hero() {
           <motion.div 
             whileHover={{ scale: 1.02, y: -4 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="relative aspect-[3/4] w-full border border-white/10 rounded-2xl bg-white/[0.02] backdrop-blur-sm overflow-hidden shadow-[0_0_50px_rgba(217,119,6,0.05)] group"
+            className="relative aspect-[3/4] w-full border border-white/10 rounded-2xl bg-zinc-900 overflow-hidden shadow-[0_0_50px_rgba(217,119,6,0.05)] group"
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-rust/10 via-acid/15 to-transparent">
-              <div className="font-display text-[10rem] leading-none italic text-white/5 select-none transition-all duration-500 group-hover:scale-105 group-hover:text-white/10">F</div>
-              <div className="mt-2 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
-                Software Engineer
-              </div>
-            </div>
-            <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+            {/* Base Regular Image */}
+            <img 
+              src="/fahim.jpg" 
+              alt="Fahim" 
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+                isIHovered 
+                  ? "grayscale-0 scale-100 opacity-0" 
+                  : isNameHovered
+                    ? "grayscale-0 scale-100 opacity-100"
+                    : "grayscale group-hover:grayscale-0 group-hover:scale-105 opacity-100"
+              }`}
+            />
+            {/* Scan Image (Active on 'i' hover) */}
+            <img 
+              src="/fahim-scan.jpg" 
+              alt="Fahim Scan" 
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out pointer-events-none ${
+                isIHovered 
+                  ? "opacity-100 scale-100" 
+                  : "opacity-0 scale-100"
+              }`}
+            />
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity duration-500 ${
+              isIHovered || isNameHovered ? "opacity-60" : "opacity-80 group-hover:opacity-60"
+            }`} />
+            <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-zinc-300">
               FIG. 01
             </div>
-            <div className="absolute bottom-4 right-4 rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white">
+            <div className="absolute bottom-4 right-4 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white">
               Fahim · 2026
             </div>
           </motion.div>
@@ -373,7 +446,7 @@ function Hero() {
 function Marquee() {
   const words = [
     "Flutter", "AI Automation", "SaaS", "Full-Stack", "Cross-Platform",
-    "Founder @ VYNIX", "Cloud Deploy", "Multi-Channel", "Motorbike Rider",
+    "Cloud Deploy", "Multi-Channel", "Motorbike Rider",
   ];
   const line = [...words, ...words, ...words];
   return (
@@ -519,52 +592,62 @@ function ProjectPreview({ index }: { index: number }) {
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-acid font-bold">REPLIXON.AI</span>
-            <span className="bg-acid/20 text-acid px-1.5 py-0.5 rounded text-[8px]">LIVE</span>
+            <span className="text-acid font-bold">PERSONIFY AI</span>
+            <span className="bg-acid/20 text-acid px-1.5 py-0.5 rounded text-[8px] font-bold">GEMINI 2.5</span>
           </div>
-          <div className="my-auto space-y-2">
-            <div className="h-2 w-2/3 bg-white/10 rounded" />
-            <div className="h-2 w-full bg-white/10 rounded" />
-            <div className="grid grid-cols-3 gap-1 pt-2">
-              <div className="border border-acid/30 p-1.5 rounded bg-acid/5 flex flex-col">
-                <span className="text-[7px] text-zinc-500">ACCURACY</span>
-                <span className="text-acid font-bold mt-0.5">99.8%</span>
+          <div className="my-auto space-y-1.5">
+            <div className="text-[7px] text-zinc-500 uppercase tracking-wider">Active AI Pipeline:</div>
+            <div className="grid grid-cols-4 gap-1 text-center text-[7px]">
+              <div className="border border-white/10 p-1 rounded bg-white/5 flex flex-col justify-center">
+                <span className="text-acid font-bold">AG-01</span>
+                <span className="text-[5px] text-zinc-500 mt-0.5">TREND</span>
               </div>
-              <div className="border border-white/5 p-1.5 rounded bg-white/5 flex flex-col">
-                <span className="text-[7px] text-zinc-500">AGENTS</span>
-                <span className="text-white font-bold mt-0.5">14 active</span>
+              <div className="border border-white/10 p-1 rounded bg-white/5 flex flex-col justify-center">
+                <span className="text-acid font-bold">AG-02</span>
+                <span className="text-[5px] text-zinc-500 mt-0.5">VISION</span>
               </div>
-              <div className="border border-white/5 p-1.5 rounded bg-white/5 flex flex-col">
-                <span className="text-[7px] text-zinc-500">CHATS</span>
-                <span className="text-white font-bold mt-0.5">1.2k/hr</span>
+              <div className="border border-white/10 p-1 rounded bg-white/5 flex flex-col justify-center">
+                <span className="text-acid font-bold">AG-03</span>
+                <span className="text-[5px] text-zinc-500 mt-0.5">COPY</span>
+              </div>
+              <div className="border border-white/10 p-1 rounded bg-white/5 flex flex-col justify-center">
+                <span className="text-acid font-bold">AG-04</span>
+                <span className="text-[5px] text-zinc-500 mt-0.5">QC</span>
               </div>
             </div>
+            <div className="flex justify-between items-center text-[7px] text-zinc-400 border-t border-white/5 pt-1.5">
+              <span>SMM Scheduler</span>
+              <span className="text-emerald-400 font-bold animate-pulse">● ACTIVE LOOP</span>
+            </div>
           </div>
-          <div className="text-[7px] text-zinc-600">Secure TLS Connection Verified</div>
+          <div className="text-[6px] text-zinc-600">Multi-Channel Publishing System</div>
         </div>
       );
     case 1:
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-rust font-bold">MILL & CHILL</span>
-            <span className="text-zinc-500">V2.5</span>
+            <span className="text-rust font-bold">CORIDE HUB</span>
+            <span className="text-zinc-500 text-[8px]">@diu.edu.bd</span>
           </div>
           <div className="my-auto space-y-2">
-            <div className="flex justify-between text-zinc-400">
-              <span>Total Meals</span>
-              <span className="text-rust">142.5</span>
+            <div className="flex justify-between text-zinc-400 text-[8px]">
+              <span>WebSocket Stream</span>
+              <span className="text-rust animate-pulse">● Live</span>
             </div>
-            <div className="h-1.5 w-full bg-zinc-900 rounded overflow-hidden">
-              <div className="h-full bg-rust w-[75%]" />
-            </div>
-            <div className="flex justify-between text-[7px] text-zinc-500 pt-1">
-              <span>Mess Balance</span>
-              <span>৳ 12,450</span>
+            <div className="bg-white/5 border border-white/5 p-1.5 rounded space-y-1 text-[7px] text-zinc-400">
+              <div className="flex justify-between">
+                <span>Rider Lat:</span>
+                <span className="text-white">23.8759° N</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Fare Share:</span>
+                <span className="text-rust font-bold">৳ Base / (1+N)</span>
+              </div>
             </div>
           </div>
-          <div className="bg-rust/10 text-rust p-1.5 rounded text-center text-[8px] font-bold">
-            FLAT 4B EXPENSE SPLIT
+          <div className="text-[7px] text-center text-zinc-500 border-t border-white/5 pt-1">
+            PostgreSQL · Express · Flutter
           </div>
         </div>
       );
@@ -572,19 +655,19 @@ function ProjectPreview({ index }: { index: number }) {
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-zinc-400 font-bold">INSTAMINER // ENGINE</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-rust font-bold">INSTARISE</span>
+            <span className="bg-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[7px] font-bold">RUNNING</span>
           </div>
-          <div className="my-auto space-y-1 font-mono text-[7px] text-zinc-500">
-            <p className="text-zinc-300">$ start --engine growth</p>
-            <p className="text-acid">[SUCCESS] Node 01 handshake complete</p>
-            <p>[RUNNING] Scraping queue: 45 profiles</p>
-            <p className="text-zinc-300">[METRIC] Engagement up 24.3%</p>
-            <p>[SYSTEM] Sleeping 140s to avoid rate limit</p>
+          <div className="my-auto space-y-1.5">
+            <div className="font-mono text-[7px] text-zinc-500 space-y-0.5">
+              <p className="text-zinc-300">$ node --growth-engine</p>
+              <p className="text-rust">[OK] Queue: 120 target profiles</p>
+              <p className="text-zinc-400">[DELAY] Throttled 120s (Anti-Ban)</p>
+              <p className="text-emerald-400">[GROWTH] Engagement +28.4%</p>
+            </div>
           </div>
-          <div className="flex justify-between text-[7px] border-t border-white/5 pt-2 text-zinc-600">
-            <span>PID: 9028</span>
-            <span>CPU: 4.2%</span>
+          <div className="text-[7px] text-zinc-600 border-t border-white/5 pt-1">
+            Autonomous Social Growth Engine
           </div>
         </div>
       );
@@ -593,17 +676,17 @@ function ProjectPreview({ index }: { index: number }) {
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
             <span className="text-acid font-bold">MOTOFILE VAULT</span>
-            <span className="text-zinc-500">ENCRYPTED</span>
+            <span className="text-zinc-500">AES-256</span>
           </div>
-          <div className="my-auto space-y-2">
-            <div className="border border-white/5 bg-white/5 p-2 rounded flex items-center justify-between">
+          <div className="my-auto space-y-1.5">
+            <div className="border border-white/5 bg-white/5 p-1.5 rounded flex items-center justify-between">
               <div>
                 <p className="text-white text-[8px]">Tax Token.pdf</p>
                 <p className="text-zinc-500 text-[6px]">Expires 14-Dec-2026</p>
               </div>
               <span className="text-acid font-bold">✓ SECURE</span>
             </div>
-            <div className="border border-white/5 bg-white/5 p-2 rounded flex items-center justify-between">
+            <div className="border border-white/5 bg-white/5 p-1.5 rounded flex items-center justify-between">
               <div>
                 <p className="text-white text-[8px]">Driving License.pdf</p>
                 <p className="text-zinc-500 text-[6px]">Verified ID 4893</p>
@@ -611,76 +694,33 @@ function ProjectPreview({ index }: { index: number }) {
               <span className="text-acid font-bold">✓ SECURE</span>
             </div>
           </div>
-          <div className="text-[6px] text-center text-zinc-500">AES-256 Storage</div>
+          <div className="text-[6px] text-center text-zinc-500">Secure Flutter Docs Locker</div>
         </div>
       );
     case 4:
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-rust font-bold">BIKE CORNER</span>
-            <span className="text-zinc-500">INVENTORY</span>
+            <span className="text-rust font-bold">BIKESHOP BD</span>
+            <span className="text-zinc-500">LIVE RETAIL</span>
           </div>
-          <div className="my-auto space-y-2">
+          <div className="my-auto space-y-1.5">
             <div className="flex justify-between border-b border-white/5 pb-1">
               <span className="text-white">Suzuki Gixxer SF</span>
-              <span className="text-rust font-bold">৳ 2,10,000</span>
+              <span className="text-rust font-bold">৳ 2,45,000</span>
             </div>
             <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-white">Yamaha R15 V3</span>
-              <span className="text-rust font-bold">৳ 3,45,000</span>
+              <span className="text-white">Yamaha R15 V4</span>
+              <span className="text-rust font-bold">৳ 3,85,000</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white">Honda CB Hornet</span>
-              <span className="text-rust font-bold">৳ 1,60,000</span>
+              <span className="text-white">Accessories Kit</span>
+              <span className="text-rust font-bold">৳ 12,500</span>
             </div>
           </div>
-          <div className="text-[7px] text-zinc-500">3 Sold · 5 Available</div>
-        </div>
-      );
-    case 5:
-      return (
-        <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
-          <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-white font-bold">POLICE KOTHAY</span>
-            <span className="bg-red-500/20 text-red-500 px-1 py-0.5 rounded text-[7px] font-bold">LIVE MAP</span>
+          <div className="text-[7px] text-zinc-500 border-t border-white/5 pt-1">
+            Motorcycle & Spare Parts E-Shop
           </div>
-          <div className="my-auto flex items-center justify-center gap-2">
-            <div className="relative w-12 h-12 border border-white/10 rounded bg-white/5 flex items-center justify-center">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-ping absolute" />
-              <div className="w-2 h-2 bg-red-500 rounded-full absolute" />
-              <span className="text-[7px] mt-8 text-zinc-500">Dhanmondi</span>
-            </div>
-            <div className="relative w-12 h-12 border border-white/10 rounded bg-white/5 flex items-center justify-center">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-ping absolute" />
-              <div className="w-2 h-2 bg-yellow-500 rounded-full absolute" />
-              <span className="text-[7px] mt-8 text-zinc-500">Banani</span>
-            </div>
-          </div>
-          <div className="text-[7px] text-center text-zinc-600">Active confirmation logs: 5+</div>
-        </div>
-      );
-    case 6:
-      return (
-        <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
-          <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-acid font-bold">CROP ADVISOR</span>
-            <span className="text-zinc-500">SRS ANALYSIS</span>
-          </div>
-          <div className="my-auto space-y-2">
-            <div className="flex justify-between text-zinc-400">
-              <span>Soil PH Optimal</span>
-              <span className="text-acid">6.2 - 6.8</span>
-            </div>
-            <div className="flex justify-between text-[7px] text-zinc-500">
-              <span>NPK Level Target</span>
-              <span>12-11-18</span>
-            </div>
-            <div className="bg-white/5 p-1.5 rounded text-[7px] text-zinc-400">
-              Soil recommendation: Nitrogen enrichment requested.
-            </div>
-          </div>
-          <div className="text-[7px] text-zinc-600">DIU SE Academic Project</div>
         </div>
       );
     default:
@@ -727,7 +767,7 @@ function Projects() {
             </h2>
           </div>
           <div className="hidden font-mono text-xs uppercase tracking-widest text-zinc-500 md:block">
-            07 shipped
+            05 shipped
           </div>
         </div>
 
@@ -752,16 +792,20 @@ function Projects() {
           </motion.div>
 
           {projects.map((p, i) => (
-            <div
+            <a
               key={p.n}
+              href={p.github}
+              target="_blank"
+              rel="noreferrer"
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
-              className="group relative border-b border-white/5 py-8 transition-all duration-300 hover:bg-white/[0.01] px-4 cursor-pointer"
+              className="group block relative border-b border-white/5 py-8 transition-all duration-300 hover:bg-white/[0.01] px-4 cursor-pointer"
             >
               <div className="mx-auto grid grid-cols-12 items-baseline gap-4">
                 <span className="col-span-2 font-mono text-xs text-zinc-600 group-hover:text-white transition-colors duration-300 md:col-span-1">{p.n}</span>
-                <h3 className="col-span-10 font-display text-3xl leading-none group-hover:translate-x-4 group-hover:text-acid md:col-span-5 md:text-5xl transition-all duration-500 ease-out text-zinc-100 font-medium">
+                <h3 className="col-span-10 font-display text-3xl leading-none group-hover:translate-x-4 group-hover:text-acid md:col-span-5 md:text-5xl transition-all duration-500 ease-out text-zinc-100 font-medium flex items-center gap-2">
                   {p.name}
+                  <ArrowUpRight className="h-5 w-5 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300 text-acid" />
                 </h3>
                 <span className="col-span-6 font-mono text-[10px] uppercase tracking-widest text-zinc-500 group-hover:text-white transition-colors duration-300 md:col-span-3">
                   {p.tag}
@@ -773,7 +817,7 @@ function Projects() {
                   {p.year}
                 </span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
@@ -781,47 +825,7 @@ function Projects() {
   );
 }
 
-function Initiatives() {
-  return (
-    <motion.section 
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      variants={sectionVariants}
-      className="border-b border-white/5 bg-white/[0.002]"
-    >
-      <div className="mx-auto max-w-[1400px] px-6 py-24 md:px-10 md:py-32">
-        <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-          § 05 — Initiatives & Roles
-        </div>
-        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="border border-white/5 bg-white/[0.01] p-8 rounded-2xl transition-all duration-300 hover:border-acid/20 hover:bg-acid/[0.02] group">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">Founder</span>
-              <span className="font-mono text-xs text-zinc-500">2024 →</span>
-            </div>
-            <h3 className="mt-6 font-display text-5xl md:text-6xl text-white group-hover:text-acid transition-colors duration-300">VYNIX</h3>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-              My own software development initiative — a home for professional application
-              engineering & product branding. Where experiments graduate into products.
-            </p>
-          </div>
-          <div className="border border-white/5 bg-white/[0.01] p-8 rounded-2xl transition-all duration-300 hover:border-rust/20 hover:bg-rust/[0.02] group">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">R&D · Contractor</span>
-              <span className="font-mono text-xs text-zinc-500">Recent</span>
-            </div>
-            <h3 className="mt-6 font-display text-5xl md:text-6xl text-white group-hover:text-rust transition-colors duration-300">Markello Agency</h3>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-              AI Automation & Full-Stack R&D role — building dynamic automation workflows that
-              scale beyond templates.
-            </p>
-          </div>
-        </div>
-      </div>
-    </motion.section>
-  );
-}
+
 
 function GithubSection() {
   return (
@@ -836,7 +840,7 @@ function GithubSection() {
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-6">
           <div>
             <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-              § 06 — Signal
+              § 05 — Signal
             </div>
             <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100">
               Commits, quietly<span className="italic text-rust">.</span>
@@ -857,7 +861,7 @@ function GithubSection() {
           <img
             src="https://ghchart.rshah.org/f97316/Fahimulislamfahim"
             alt="Fahim's GitHub contribution calendar"
-            className="w-full relative z-10"
+            className="w-full relative z-10 [filter:invert(0.9)_hue-rotate(180deg)]"
             loading="lazy"
           />
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-500 relative z-10">
@@ -882,7 +886,7 @@ function Education() {
       <div className="mx-auto grid max-w-[1400px] grid-cols-12 gap-6 px-6 py-24 md:px-10 md:py-32">
         <div className="col-span-12 md:col-span-4">
           <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-            § 07 — Education
+            § 06 — Education
           </div>
           <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100">In progress.</h2>
         </div>
@@ -914,25 +918,38 @@ function Footer() {
 
       <div className="mx-auto max-w-[1400px] px-6 pb-12 pt-24 md:px-10 md:pt-36 relative z-10">
         <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-          § 08 — Contact
+          § 07 — Contact
         </div>
         <h2 className="mt-4 font-display text-[14vw] leading-[0.85] md:text-[9rem] select-none cursor-default text-zinc-100">
           Let's <span className="italic text-rust hover:text-acid transition-colors duration-500">build</span> something.
         </h2>
         <div className="mt-14 flex flex-wrap items-end justify-between gap-6 border-t border-white/10 pt-8">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="font-mono text-xs uppercase tracking-widest text-zinc-600">
               Reach out
             </div>
-            <a
-              href={GITHUB}
-              target="_blank"
-              rel="noreferrer"
-              className="group inline-flex items-center gap-2 font-display text-2xl italic text-zinc-300 hover:text-rust transition-colors duration-300 md:text-3xl"
-            >
-              github.com/Fahimulislamfahim
-              <ArrowUpRight className="h-6 w-6 transition group-hover:rotate-45" />
-            </a>
+            <div className="flex flex-col gap-2">
+              <a
+                href={GITHUB}
+                target="_blank"
+                rel="noreferrer"
+                className="group inline-flex items-center gap-2 font-display text-2xl italic text-zinc-300 hover:text-rust transition-colors duration-300 md:text-3xl"
+              >
+                github.com/Fahimulislamfahim
+                <ArrowUpRight className="h-6 w-6 transition group-hover:rotate-45" />
+              </a>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+                <a href={LINKEDIN} target="_blank" rel="noreferrer" className="hover:text-acid transition-colors flex items-center gap-1">
+                  LinkedIn <ArrowUpRight className="h-3 w-3" />
+                </a>
+                <a href={FACEBOOK} target="_blank" rel="noreferrer" className="hover:text-acid transition-colors flex items-center gap-1">
+                  Facebook <ArrowUpRight className="h-3 w-3" />
+                </a>
+                <a href={THREADS} target="_blank" rel="noreferrer" className="hover:text-acid transition-colors flex items-center gap-1">
+                  Threads <ArrowUpRight className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
           </div>
           <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 text-right">
             <div>© 2026 Fahim · Dhaka, BD</div>
