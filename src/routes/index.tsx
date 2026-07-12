@@ -104,6 +104,147 @@ function CustomCursor() {
   );
 }
 
+function NeuralCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (isMobile) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const particleCount = 45;
+    const particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+    }> = [];
+
+    let mouse = { x: -1000, y: -1000 };
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        radius: Math.random() * 1.2 + 0.8,
+      });
+    }
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+
+    const handleMouseLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        if (mouse.x > 0 && mouse.y > 0) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 220) {
+            p.x += dx * 0.002;
+            p.y += dy * 0.002;
+          }
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.fill();
+      });
+
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const p1 = particles[i];
+          const p2 = particles[j];
+
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+
+            if (mouse.x > 0 && mouse.y > 0) {
+              const mdx = mouse.x - (p1.x + p2.x) / 2;
+              const mdy = mouse.y - (p1.y + p2.y) / 2;
+              const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+
+              if (mdist < 160) {
+                const alpha = (1 - dist / 100) * (1 - mdist / 160) * 0.2;
+                ctx.strokeStyle = `rgba(217, 249, 157, ${alpha})`;
+              } else {
+                const alpha = (1 - dist / 100) * 0.03;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+              }
+            } else {
+              const alpha = (1 - dist / 100) * 0.03;
+              ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [isMobile]);
+
+  if (isMobile) return null;
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-0 opacity-50"
+    />
+  );
+}
+
 export const Route = createFileRoute("/")({
   component: Portfolio,
   head: () => ({
@@ -126,28 +267,23 @@ const THREADS = "https://www.threads.net/@fahim.0.1";
 const skills = [
   {
     icon: Smartphone,
-    title: "Mobile",
+    title: "Mobile Development",
     items: ["Flutter", "Dart"],
   },
   {
     icon: Code2,
-    title: "Languages",
-    items: ["Python", "Java", "JavaScript", "Dart", "PHP"],
-  },
-  {
-    icon: Terminal,
-    title: "Tools & IDEs",
-    items: ["VS Code", "Google Antigravity IDE", "Git"],
+    title: "Languages & Tools",
+    items: ["Python", "Java", "JavaScript", "Dart", "PHP", "VS Code", "Antigravity IDE", "Git"],
   },
   {
     icon: Cpu,
     title: "AI & Automation",
-    items: ["Workflow Automation", "Multi-channel SaaS", "Custom Agents"],
+    items: ["Workflow Automation", "Multi-agent SaaS", "Custom Agents"],
   },
   {
     icon: Cloud,
     title: "Cloud & Deploy",
-    items: ["Vercel", "GitHub Student Pack", "Server Deployment"],
+    items: ["Vercel", "GitHub Pack", "Server Deployment"],
   },
 ];
 
@@ -265,6 +401,7 @@ function Portfolio() {
   return (
     <>
       <CustomCursor />
+      <NeuralCanvas />
       <Nav />
       <main className="grain min-h-screen bg-background text-foreground overflow-x-hidden">
         <Hero />
@@ -280,9 +417,127 @@ function Portfolio() {
   );
 }
 
+const globalSynth = {
+  ctx: null as AudioContext | null,
+  isMuted: true,
+  init() {
+    if (this.ctx) return;
+    const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      this.ctx = new AudioContextClass();
+    }
+  },
+  setMute(mute: boolean) {
+    this.isMuted = mute;
+    if (!mute) {
+      this.init();
+      if (this.ctx && this.ctx.state === "suspended") {
+        this.ctx.resume();
+      }
+    }
+  },
+  playTick() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.006, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.05);
+    } catch (e) {
+      console.warn(e);
+    }
+  },
+  playTone(freq: number) {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.012, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.17);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+};
+
+function ScrambleText({ text, className = "" }: { text: string; className?: string }) {
+  const [displayText, setDisplayText] = useState(text);
+  const [isScrambling, setIsScrambling] = useState(false);
+
+  const symbols = "01$!@#%?*&_+=/\\";
+
+  const triggerScramble = () => {
+    if (isScrambling) return;
+    setIsScrambling(true);
+    let iterations = 0;
+    
+    globalSynth.playTick();
+
+    const interval = setInterval(() => {
+      setDisplayText(() => {
+        return text
+          .split("")
+          .map((char, index) => {
+            if (char === " ") return " ";
+            if (index < iterations) {
+              return text[index];
+            }
+            return symbols[Math.floor(Math.random() * symbols.length)];
+          })
+          .join("");
+      });
+
+      iterations += 1 / 2;
+      if (iterations >= text.length) {
+        clearInterval(interval);
+        setDisplayText(text);
+        setIsScrambling(false);
+      }
+    }, 25);
+  };
+
+  return (
+    <span
+      onMouseEnter={triggerScramble}
+      className={className}
+    >
+      {displayText}
+    </span>
+  );
+}
+
 function Nav() {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    globalSynth.setMute(nextMuted);
+    if (!nextMuted) {
+      setTimeout(() => {
+        globalSynth.playTone(440);
+      }, 50);
+    }
+  };
 
   // Fade in the navbar logo as the hero text flies up and fades out
   const navLogoOpacity = useTransform(scrollY, [120, 200], [0, 1]);
@@ -307,42 +562,85 @@ function Nav() {
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
         {/* Left: Logo */}
         <motion.div style={{ opacity: navLogoOpacity }} className="w-1/4 flex justify-start">
-          <a href="#top" className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300">
+          <a
+            href="#top"
+            onMouseEnter={() => globalSynth.playTick()}
+            className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300"
+          >
             Fahim<span className="text-rust">.</span>
           </a>
         </motion.div>
 
         {/* Middle: Navigation links */}
         <nav className="flex justify-center gap-8 font-mono text-xs uppercase tracking-widest w-2/4">
-          <a href="#work" className="hover:text-acid transition-colors duration-300 relative group">
-            Work
+          <a
+            href="#work"
+            className="hover:text-acid transition-colors duration-300 relative group"
+          >
+            <ScrambleText text="Work" />
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
           </a>
-          <a href="#about" className="hover:text-acid transition-colors duration-300 relative group">
-            About
+          <a
+            href="#about"
+            className="hover:text-acid transition-colors duration-300 relative group"
+          >
+            <ScrambleText text="About" />
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
           </a>
-          <a href="#skills" className="hover:text-acid transition-colors duration-300 relative group">
-            Stack
+          <a
+            href="#skills"
+            className="hover:text-acid transition-colors duration-300 relative group"
+          >
+            <ScrambleText text="Stack" />
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
           </a>
-          <a href="#contact" className="hover:text-acid transition-colors duration-300 relative group">
-            Contact
+          <a
+            href="#contact"
+            className="hover:text-acid transition-colors duration-300 relative group"
+          >
+            <ScrambleText text="Contact" />
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
           </a>
         </nav>
 
-        {/* Right: Availability status */}
-        <motion.div
-          style={{ opacity: navExtraOpacity }}
-          className="w-1/4 flex justify-end items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acid opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-acid" />
-          </span>
-          <span className="hidden sm:inline">Available for work</span>
-        </motion.div>
+        {/* Right: Availability & Audio Synth Toggle */}
+        <div className="w-1/4 flex flex-col items-end gap-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+          <motion.div
+            style={{ opacity: navExtraOpacity }}
+            className="flex items-center gap-2"
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acid opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid" />
+            </span>
+            <span className="hidden sm:inline">Available for work</span>
+          </motion.div>
+          
+          <button
+            onClick={toggleMute}
+            onMouseEnter={() => globalSynth.playTick()}
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[8px] font-bold tracking-widest transition-all duration-300 cursor-pointer ${
+              !isMuted
+                ? "border-acid/30 bg-acid/10 text-acid shadow-[0_0_10px_rgba(217,249,157,0.15)]"
+                : "border-white/5 bg-white/[0.02] text-zinc-500 hover:text-white"
+            }`}
+            title="Toggle Audio Synthesizer"
+          >
+            {!isMuted ? (
+              <>
+                <span className="flex h-2 items-center">
+                  <span className="audio-wave-bar" />
+                  <span className="audio-wave-bar" />
+                  <span className="audio-wave-bar" />
+                  <span className="audio-wave-bar" />
+                </span>
+                SYNTH ON
+              </>
+            ) : (
+              "SYNTH OFF"
+            )}
+          </button>
+        </div>
       </div>
     </motion.header>
   );
@@ -672,6 +970,8 @@ function RiderDashboard() {
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={() => { setIsHovered(true); globalSynth.playTone(196.00); }}
+      onMouseLeave={() => setIsHovered(false)}
       className="glow-card-rust border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none"
     >
       <div className="glow-bg" />
@@ -682,7 +982,12 @@ function RiderDashboard() {
           <Bike className="h-3.5 w-3.5 text-rust animate-pulse" /> DUSK RIDER DASH
         </span>
         <button
-          onClick={() => setIsEngineOn(!isEngineOn)}
+          onClick={() => {
+            const nextOn = !isEngineOn;
+            setIsEngineOn(nextOn);
+            globalSynth.playTone(nextOn ? 392.00 : 220.00);
+          }}
+          onMouseEnter={() => globalSynth.playTick()}
           className={`px-3 py-1 rounded-full border text-[8px] transition-all duration-300 font-bold cursor-pointer ${
             isEngineOn
               ? "border-rust bg-rust/20 text-rust shadow-[0_0_12px_rgba(217,119,6,0.3)] animate-pulse"
@@ -818,33 +1123,21 @@ function RiderDashboard() {
 function SkillCard({ s, i }: { s: typeof skills[0]; i: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
   
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { damping: 24, stiffness: 220 });
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { damping: 24, stiffness: 220 });
-  
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const relativeX = (e.clientX - rect.left) / rect.width - 0.5;
-    const relativeY = (e.clientY - rect.top) / rect.height - 0.5;
-    
-    x.set(relativeX);
-    y.set(relativeY);
-
     cardRef.current.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
     cardRef.current.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
   };
 
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
+  const playHoverSound = () => {
+    const tones = [261.63, 293.66, 329.63, 392.00]; // Pentatonic: C4, D4, E4, G4
+    const tone = tones[i] || 261.63;
+    globalSynth.playTone(tone);
   };
 
   const glowClasses = [
     "glow-card-acid",
-    "glow-card-neutral",
     "glow-card-neutral",
     "glow-card-rust",
     "glow-card-acid",
@@ -852,19 +1145,14 @@ function SkillCard({ s, i }: { s: typeof skills[0]; i: number }) {
   const glowClass = glowClasses[i] || "glow-card-neutral";
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        rotateX,
-        rotateY,
-        transformStyle: "preserve-3d",
-      }}
+      onMouseEnter={playHoverSound}
       className={`group relative bg-white/[0.01] border border-white/5 p-8 hover:bg-white/[0.02] hover:border-white/10 rounded-2xl overflow-hidden transition-colors duration-300 ${glowClass}`}
     >
       <div className="glow-bg" />
-      <div style={{ transform: "translateZ(20px)" }} className="relative z-10">
+      <div className="relative z-10">
         <div className="flex items-center justify-between">
           <s.icon className="h-6 w-6 text-zinc-400 group-hover:text-acid transition-colors duration-300" />
           <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 group-hover:text-white transition-colors">
@@ -885,7 +1173,189 @@ function SkillCard({ s, i }: { s: typeof skills[0]; i: number }) {
           ))}
         </ul>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+function AIPipelineSimulator() {
+  const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [logs, setLogs] = useState<string[]>([
+    "System ready. Click below to simulate pipeline."
+  ]);
+  const [isRunning, setIsRunning] = useState(false);
+  
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    cardRef.current.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    cardRef.current.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  };
+
+  const steps = [
+    { name: "Scout", label: "Trend Scout", desc: "Crawls social feeds" },
+    { name: "Vision", label: "Vision Scanner", desc: "Analyzes media aesthetics" },
+    { name: "Copy", label: "Copywriting Engine", desc: "Generates high-conv copy" },
+    { name: "QC", label: "QC Auditor", desc: "Validates and runs filters" }
+  ];
+
+  const simulatedLogs = [
+    [
+      "[Scout] Accessing trend endpoints...",
+      "[Scout] Detected trending hash: #FlutterDev",
+      "[Scout] Engagement index: 9.8/10",
+      "[Scout] Forwarding payload to Vision."
+    ],
+    [
+      "[Vision] Scanning uploaded creative...",
+      "[Vision] Checking brightness & layout ratios...",
+      "[Vision] Quality check: PASS (High Aesthetic Rating)",
+      "[Vision] Forwarding assets to Copywriter."
+    ],
+    [
+      "[Copywriter] Generating Gemini prompts...",
+      "[Copywriter] Draft 1: 'Flutter is the future!' (Score: 78%)",
+      "[Copywriter] Draft 2: 'Build once. Deploy everywhere.' (Score: 94%)",
+      "[Copywriter] Selected Draft 2. Passing to QC."
+    ],
+    [
+      "[QC] Auditor verification started...",
+      "[QC] Anti-spam filters: OK",
+      "[QC] Duplicate check: OK (Original content)",
+      "[QC] PIPELINE DEPLOYED SUCCESSFUL!"
+    ]
+  ];
+
+  const triggerPipeline = async () => {
+    if (isRunning) return;
+    setIsRunning(true);
+    setLogs(["[Pipeline] Launching Multi-Agent flow..."]);
+    
+    for (let step = 0; step < 4; step++) {
+      setActiveStep(step);
+      globalSynth.playTone(329.63 + step * 65); // Play a rising synth note for each active agent node!
+      for (const logLine of simulatedLogs[step]) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        setLogs((prev) => [...prev.slice(-4), logLine]);
+        globalSynth.playTick(); // Tick on each printed log line
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+    
+    setActiveStep(null);
+    setIsRunning(false);
+    globalSynth.playTone(523.25); // C5 alert when fully completed!
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => globalSynth.playTone(220.00)}
+      className="glow-card-acid border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none"
+    >
+      <div className="glow-bg" />
+      <div className="absolute inset-0 dashboard-grid-pattern opacity-[0.12] pointer-events-none" />
+
+      <div className="flex justify-between items-center relative z-10 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
+        <span className="flex items-center gap-1.5">
+          <Cpu className="h-3.5 w-3.5 text-acid animate-pulse" /> AI Agent Pipeline
+        </span>
+        <button
+          onClick={() => {
+            triggerPipeline();
+            globalSynth.playTone(523.25);
+          }}
+          onMouseEnter={() => globalSynth.playTick()}
+          disabled={isRunning}
+          className={`px-3 py-1 rounded-full border text-[8px] transition-all duration-300 font-bold cursor-pointer ${
+            isRunning
+              ? "border-acid bg-acid/20 text-acid shadow-[0_0_12px_rgba(217,249,157,0.3)] animate-pulse"
+              : "border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+          }`}
+          data-cursor-text={isRunning ? "RUNNING" : "SIMULATE"}
+        >
+          {isRunning ? "PROCESSING" : "RUN SIMULATION"}
+        </button>
+      </div>
+
+      <div className="relative z-10 my-4 h-20 w-full flex items-center justify-between px-1">
+        <svg className="absolute inset-0 w-full h-full text-zinc-800 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M 36,20 L 76,20"
+            fill="none"
+            stroke={activeStep !== null && activeStep >= 0 ? "var(--color-acid)" : "currentColor"}
+            strokeWidth="1.5"
+            className={activeStep === 0 ? "laser-pulse" : ""}
+            style={{ opacity: activeStep === 0 ? 1 : 0.2 }}
+          />
+          <path
+            d="M 112,20 L 148,20"
+            fill="none"
+            stroke={activeStep !== null && activeStep >= 1 ? "var(--color-acid)" : "currentColor"}
+            strokeWidth="1.5"
+            className={activeStep === 1 ? "laser-pulse" : ""}
+            style={{ opacity: activeStep === 1 ? 1 : 0.2 }}
+          />
+          <path
+            d="M 184,20 L 220,20"
+            fill="none"
+            stroke={activeStep !== null && activeStep >= 2 ? "var(--color-acid)" : "currentColor"}
+            strokeWidth="1.5"
+            className={activeStep === 2 ? "laser-pulse" : ""}
+            style={{ opacity: activeStep === 2 ? 1 : 0.2 }}
+          />
+        </svg>
+
+        {steps.map((step, idx) => {
+          const isActive = activeStep === idx;
+          const isDone = activeStep !== null && idx < activeStep;
+          return (
+            <div key={step.name} className="flex flex-col items-center z-10 w-12 text-center">
+              <div
+                className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-500 ${
+                  isActive
+                    ? "border-acid bg-acid/20 text-acid shadow-[0_0_12px_rgba(217,249,157,0.4)] scale-110"
+                    : isDone
+                      ? "border-acid/40 bg-zinc-950 text-acid/60"
+                      : "border-white/10 bg-zinc-950 text-zinc-500"
+                }`}
+                title={step.desc}
+              >
+                <span className="font-mono text-[9px] font-bold">AG-0{idx + 1}</span>
+              </div>
+              <span className={`font-mono text-[7px] tracking-wide mt-1.5 ${isActive ? "text-acid font-bold" : "text-zinc-500"}`}>
+                {step.name}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="relative z-10 bg-zinc-950/80 border border-white/5 rounded-lg p-2.5 font-mono text-[7px] text-zinc-400 h-16 overflow-hidden flex flex-col justify-end">
+        <div className="space-y-0.5 text-left">
+          {logs.map((log, index) => (
+            <p
+              key={index}
+              className={`leading-normal ${
+                log.includes("SUCCESSFUL") || log.includes("PASS")
+                  ? "text-emerald-400 font-bold"
+                  : log.includes("Scout")
+                    ? "text-sky-400"
+                    : log.includes("Vision")
+                      ? "text-purple-400"
+                      : log.includes("Copy")
+                        ? "text-amber-400"
+                        : "text-zinc-500"
+              }`}
+            >
+              {log}
+            </p>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -905,20 +1375,21 @@ function Skills() {
             <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
               § 03 — Stack
             </div>
-            <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100">The toolkit.</h2>
+            <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100"><ScrambleText text="The toolkit." /></h2>
           </div>
           <div className="hidden font-mono text-xs uppercase tracking-widest text-zinc-500 md:block">
-            05 disciplines
+            04 disciplines
           </div>
         </div>
 
         <motion.div 
           variants={staggerContainer}
-          className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 perspective-1000"
+          className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
         >
           {skills.map((s, i) => (
             <SkillCard key={s.title} s={s} i={i} />
           ))}
+          <AIPipelineSimulator />
           <RiderDashboard />
         </motion.div>
       </div>
@@ -1102,8 +1573,8 @@ function Projects() {
             <div className="font-mono text-xs uppercase tracking-widest text-zinc-500">
               § 04 — Work
             </div>
-            <h2 className="mt-2 font-display text-4xl md:text-6xl">
-              Selected <span className="italic text-rust">projects</span>.
+            <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100">
+              <ScrambleText text="Selected projects." />
             </h2>
           </div>
           <div className="hidden font-mono text-xs uppercase tracking-widest text-zinc-500 md:block">
