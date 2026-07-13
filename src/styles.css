@@ -262,4 +262,9 @@ html.lenis, html.lenis body {
   100% { transform: scaleY(1.4); }
 }
 
+@keyframes laser {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
 

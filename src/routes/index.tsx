@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from "motion/react";
+import { motion, useScroll, useTransform, useMotionValue, useSpring, AnimatePresence } from "motion/react";
 import { useRef, useState, useEffect } from "react";
 import Lenis from "lenis";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -17,6 +17,8 @@ import {
   Facebook,
   Linkedin,
   Globe,
+  Menu,
+  X,
 } from "lucide-react";
 
 function CustomCursor() {
@@ -361,12 +363,17 @@ const staggerContainer = {
 
 function Portfolio() {
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
-      smoothWheel: true,
-      wheelMultiplier: 1.05,
-    });
+    const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
+    let lenis: Lenis | null = null;
+    if (!isMobileDevice) {
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
+        smoothWheel: true,
+        wheelMultiplier: 1.05,
+      });
+    }
 
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -377,7 +384,11 @@ function Portfolio() {
           e.preventDefault();
           const targetElement = document.querySelector(href);
           if (targetElement) {
-            lenis.scrollTo(targetElement);
+            if (lenis) {
+              lenis.scrollTo(targetElement);
+            } else {
+              targetElement.scrollIntoView({ behavior: "smooth" });
+            }
           }
         }
       }
@@ -385,16 +396,21 @@ function Portfolio() {
 
     document.addEventListener("click", handleAnchorClick);
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+    let rafId: number;
+    if (lenis) {
+      const raf = (time: number) => {
+        lenis?.raf(time);
+        rafId = requestAnimationFrame(raf);
+      };
+      rafId = requestAnimationFrame(raf);
     }
-
-    requestAnimationFrame(raf);
 
     return () => {
       document.removeEventListener("click", handleAnchorClick);
-      lenis.destroy();
+      if (lenis) {
+        cancelAnimationFrame(rafId);
+        lenis.destroy();
+      }
     };
   }, []);
 
@@ -527,6 +543,8 @@ function Nav() {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const toggleMute = () => {
     const nextMuted = !isMuted;
@@ -540,6 +558,7 @@ function Nav() {
   };
 
   // Fade in the navbar logo as the hero text flies up and fades out
+  // On mobile, keep it visible so there's always a brand identifier
   const navLogoOpacity = useTransform(scrollY, [120, 200], [0, 1]);
   
   // Fade out availability on scroll down for a more minimal navbar
@@ -551,19 +570,35 @@ function Nav() {
     });
   }, [scrollY]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <motion.header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ease-in-out border-b ${
-        isScrolled
-          ? "border-white/5 bg-zinc-950/80 backdrop-blur-md py-3 shadow-md shadow-black/10"
+        isScrolled || isMobileMenuOpen
+          ? "border-white/5 bg-zinc-950/90 backdrop-blur-md py-3 shadow-md shadow-black/10"
           : "border-transparent bg-transparent py-6"
       }`}
     >
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
         {/* Left: Logo */}
-        <motion.div style={{ opacity: navLogoOpacity }} className="w-1/4 flex justify-start">
+        <motion.div 
+          style={{ opacity: isMobile ? 1 : navLogoOpacity }} 
+          className="w-1/2 md:w-1/4 flex justify-start"
+        >
           <a
             href="#top"
+            onClick={() => setIsMobileMenuOpen(false)}
             onMouseEnter={() => globalSynth.playTick()}
             className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300"
           >
@@ -571,8 +606,8 @@ function Nav() {
           </a>
         </motion.div>
 
-        {/* Middle: Navigation links */}
-        <nav className="flex justify-center gap-8 font-mono text-xs uppercase tracking-widest w-2/4">
+        {/* Middle: Navigation links (Desktop) */}
+        <nav className="hidden md:flex justify-center gap-8 font-mono text-xs uppercase tracking-widest w-2/4">
           <a
             href="#work"
             className="hover:text-acid transition-colors duration-300 relative group"
@@ -603,45 +638,117 @@ function Nav() {
           </a>
         </nav>
 
-        {/* Right: Availability & Audio Synth Toggle */}
-        <div className="w-1/4 flex flex-col items-end gap-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+        {/* Right: Availability & Audio Synth Toggle / Mobile Menu Trigger */}
+        <div className="w-1/2 md:w-1/4 flex items-center md:flex-col md:items-end justify-end gap-3 md:gap-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
           <motion.div
-            style={{ opacity: navExtraOpacity }}
-            className="flex items-center gap-2"
+            style={{ opacity: isMobile ? 1 : navExtraOpacity }}
+            className="hidden sm:flex items-center gap-2"
           >
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acid opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid" />
             </span>
-            <span className="hidden sm:inline">Available for work</span>
+            <span>Available for work</span>
           </motion.div>
           
-          <button
-            onClick={toggleMute}
-            onMouseEnter={() => globalSynth.playTick()}
-            className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[8px] font-bold tracking-widest transition-all duration-300 cursor-pointer ${
-              !isMuted
-                ? "border-acid/30 bg-acid/10 text-acid shadow-[0_0_10px_rgba(217,249,157,0.15)]"
-                : "border-white/5 bg-white/[0.02] text-zinc-500 hover:text-white"
-            }`}
-            title="Toggle Audio Synthesizer"
-          >
-            {!isMuted ? (
-              <>
-                <span className="flex h-2 items-center">
-                  <span className="audio-wave-bar" />
-                  <span className="audio-wave-bar" />
-                  <span className="audio-wave-bar" />
-                  <span className="audio-wave-bar" />
-                </span>
-                SYNTH ON
-              </>
-            ) : (
-              "SYNTH OFF"
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMute}
+              onMouseEnter={() => globalSynth.playTick()}
+              className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[8px] font-bold tracking-widest transition-all duration-300 cursor-pointer ${
+                !isMuted
+                  ? "border-acid/30 bg-acid/10 text-acid shadow-[0_0_10px_rgba(217,249,157,0.15)]"
+                  : "border-white/5 bg-white/[0.02] text-zinc-500 hover:text-white"
+              }`}
+              title="Toggle Audio Synthesizer"
+            >
+              {!isMuted ? (
+                <>
+                  <span className="flex h-2 items-center">
+                    <span className="audio-wave-bar" />
+                    <span className="audio-wave-bar" />
+                    <span className="audio-wave-bar" />
+                    <span className="audio-wave-bar" />
+                  </span>
+                  SYNTH ON
+                </>
+              ) : (
+                "SYNTH OFF"
+              )}
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+                globalSynth.playTone(isMobileMenuOpen ? 220.00 : 330.00);
+              }}
+              className="flex md:hidden items-center justify-center p-2 rounded-full border border-white/5 bg-white/[0.02] text-zinc-400 hover:text-white hover:border-white/10 cursor-pointer transition-all duration-300"
+              title="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="md:hidden absolute top-[100%] left-0 w-full h-[calc(100vh-100%)] bg-zinc-950/95 backdrop-blur-lg z-40 px-6 py-12 flex flex-col justify-between border-t border-white/5"
+            style={{ minHeight: "calc(100vh - 60px)" }}
+          >
+            <nav className="flex flex-col gap-6 font-mono text-lg uppercase tracking-widest text-center mt-6">
+              <a
+                href="#work"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-zinc-300 hover:text-acid py-3 transition-colors duration-300 border-b border-white/5"
+              >
+                Work
+              </a>
+              <a
+                href="#about"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-zinc-300 hover:text-acid py-3 transition-colors duration-300 border-b border-white/5"
+              >
+                About
+              </a>
+              <a
+                href="#skills"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-zinc-300 hover:text-acid py-3 transition-colors duration-300 border-b border-white/5"
+              >
+                Stack
+              </a>
+              <a
+                href="#contact"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-zinc-300 hover:text-acid py-3 transition-colors duration-300 border-b border-white/5"
+              >
+                Contact
+              </a>
+            </nav>
+
+            <div className="flex flex-col items-center gap-4 border-t border-white/5 pt-8 text-center">
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acid opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid" />
+                </span>
+                <span>Available for work</span>
+              </div>
+              <div className="font-mono text-[9px] uppercase tracking-widest text-zinc-600">
+                © 2026 Fahim · Dhaka, BD
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
@@ -652,13 +759,15 @@ function Hero() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const isMobile = useIsMobile();
+  const y = useTransform(scrollYProgress, [0, 1], isMobile ? [0, 0] : [0, 150]);
 
   // Scroll transforms to slide, scale, and fade the main title into the header logo position
-  const titleX = useTransform(scrollY, [0, 200], ["0vw", "-22vw"]);
-  const titleY = useTransform(scrollY, [0, 200], ["0px", "-160px"]);
-  const titleScale = useTransform(scrollY, [0, 200], [1, 0.16]);
-  const titleOpacity = useTransform(scrollY, [120, 200], [1, 0]);
+  // Disable these transforms on mobile since the mobile header is different and doesn't align
+  const titleX = useTransform(scrollY, [0, 200], isMobile ? ["0vw", "0vw"] : ["0vw", "-22vw"]);
+  const titleY = useTransform(scrollY, [0, 200], isMobile ? ["0px", "0px"] : ["0px", "-160px"]);
+  const titleScale = useTransform(scrollY, [0, 200], isMobile ? [1, 1] : [1, 0.16]);
+  const titleOpacity = useTransform(scrollY, [120, 200], isMobile ? [1, 1] : [1, 0]);
 
   return (
     <section id="top" ref={ref} className="relative border-b border-white/5 overflow-hidden">
@@ -859,12 +968,13 @@ function Marquee() {
 }
 
 function About() {
+  const isMobile = useIsMobile();
   return (
     <motion.section 
       id="about" 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: isMobile ? "-30px" : "-100px" }}
       variants={sectionVariants}
       className="border-b border-white/5 relative"
     >
@@ -972,6 +1082,9 @@ function RiderDashboard() {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => { setIsHovered(true); globalSynth.playTone(196.00); }}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => { setIsHovered(true); globalSynth.playTone(196.00); }}
+      onTouchEnd={() => setIsHovered(false)}
+      onTouchCancel={() => setIsHovered(false)}
       className="glow-card-rust border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none"
     >
       <div className="glow-bg" />
@@ -1281,53 +1394,50 @@ function AIPipelineSimulator() {
       </div>
 
       <div className="relative z-10 my-4 h-20 w-full flex items-center justify-between px-1">
-        <svg className="absolute inset-0 w-full h-full text-zinc-800 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M 36,20 L 76,20"
-            fill="none"
-            stroke={activeStep !== null && activeStep >= 0 ? "var(--color-acid)" : "currentColor"}
-            strokeWidth="1.5"
-            className={activeStep === 0 ? "laser-pulse" : ""}
-            style={{ opacity: activeStep === 0 ? 1 : 0.2 }}
-          />
-          <path
-            d="M 112,20 L 148,20"
-            fill="none"
-            stroke={activeStep !== null && activeStep >= 1 ? "var(--color-acid)" : "currentColor"}
-            strokeWidth="1.5"
-            className={activeStep === 1 ? "laser-pulse" : ""}
-            style={{ opacity: activeStep === 1 ? 1 : 0.2 }}
-          />
-          <path
-            d="M 184,20 L 220,20"
-            fill="none"
-            stroke={activeStep !== null && activeStep >= 2 ? "var(--color-acid)" : "currentColor"}
-            strokeWidth="1.5"
-            className={activeStep === 2 ? "laser-pulse" : ""}
-            style={{ opacity: activeStep === 2 ? 1 : 0.2 }}
-          />
-        </svg>
-
         {steps.map((step, idx) => {
           const isActive = activeStep === idx;
           const isDone = activeStep !== null && idx < activeStep;
           return (
-            <div key={step.name} className="flex flex-col items-center z-10 w-12 text-center">
-              <div
-                className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-500 ${
-                  isActive
-                    ? "border-acid bg-acid/20 text-acid shadow-[0_0_12px_rgba(217,249,157,0.4)] scale-110"
-                    : isDone
-                      ? "border-acid/40 bg-zinc-950 text-acid/60"
-                      : "border-white/10 bg-zinc-950 text-zinc-500"
-                }`}
-                title={step.desc}
-              >
-                <span className="font-mono text-[9px] font-bold">AG-0{idx + 1}</span>
+            <div key={step.name} className="flex items-center flex-1 last:flex-none">
+              {/* Node */}
+              <div className="flex flex-col items-center z-10 w-12 text-center shrink-0">
+                <div
+                  className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-500 ${
+                    isActive
+                      ? "border-acid bg-acid/20 text-acid shadow-[0_0_12px_rgba(217,249,157,0.4)] scale-110"
+                      : isDone
+                        ? "border-acid/40 bg-zinc-950 text-acid/60"
+                        : "border-white/10 bg-zinc-950 text-zinc-500"
+                  }`}
+                  title={step.desc}
+                >
+                  <span className="font-mono text-[9px] font-bold">AG-0{idx + 1}</span>
+                </div>
+                <span className={`font-mono text-[7px] tracking-wide mt-1.5 ${isActive ? "text-acid font-bold" : "text-zinc-500"}`}>
+                  {step.name}
+                </span>
               </div>
-              <span className={`font-mono text-[7px] tracking-wide mt-1.5 ${isActive ? "text-acid font-bold" : "text-zinc-500"}`}>
-                {step.name}
-              </span>
+
+              {/* Connector line */}
+              {idx < steps.length - 1 && (
+                <div className="flex-1 h-[1.5px] mx-1 relative bg-zinc-800/40 rounded-full overflow-hidden">
+                  <div
+                    className={`absolute inset-0 transition-all duration-500 ${
+                      isActive 
+                        ? "bg-acid animate-pulse shadow-[0_0_8px_var(--color-acid)]"
+                        : isDone
+                          ? "bg-acid/60"
+                          : "bg-transparent"
+                    }`}
+                    style={{
+                      width: activeStep !== null && activeStep >= idx ? "100%" : "0%",
+                    }}
+                  />
+                  {isActive && (
+                    <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/80 to-transparent animate-[laser_1.5s_linear_infinite]" />
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -1360,12 +1470,13 @@ function AIPipelineSimulator() {
 }
 
 function Skills() {
+  const isMobile = useIsMobile();
   return (
     <motion.section 
       id="skills" 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: isMobile ? "-30px" : "-100px" }}
       variants={sectionVariants}
       className="border-b border-white/5 bg-white/[0.002]"
     >
@@ -1542,6 +1653,7 @@ function ProjectPreview({ index }: { index: number }) {
 function Projects() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -1563,7 +1675,7 @@ function Projects() {
       id="work" 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: isMobile ? "-30px" : "-100px" }}
       variants={sectionVariants}
       className="border-b border-white/5"
     >
@@ -1628,6 +1740,13 @@ function Projects() {
                 <span className="col-span-6 text-right font-mono text-[10px] uppercase tracking-widest text-zinc-600 group-hover:text-white transition-colors duration-300 md:col-span-1">
                   {p.year}
                 </span>
+                
+                {/* Mobile Preview Widget */}
+                {isMobile && (
+                  <div className="col-span-12 mt-4 h-[120px] w-full pointer-events-none">
+                    <ProjectPreview index={i} />
+                  </div>
+                )}
               </div>
             </a>
           ))}
@@ -1640,11 +1759,12 @@ function Projects() {
 
 
 function GithubSection() {
+  const isMobile = useIsMobile();
   return (
     <motion.section 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: isMobile ? "-30px" : "-100px" }}
       variants={sectionVariants}
       className="border-b border-white/5"
     >
@@ -1670,12 +1790,16 @@ function GithubSection() {
 
         <div className="mt-10 border border-white/5 bg-white/[0.01] p-6 md:p-10 rounded-2xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-rust/5 to-transparent pointer-events-none" />
-          <img
-            src="https://ghchart.rshah.org/f97316/Fahimulislamfahim"
-            alt="Fahim's GitHub contribution calendar"
-            className="w-full relative z-10 [filter:invert(0.9)_hue-rotate(180deg)]"
-            loading="lazy"
-          />
+          <div className="w-full overflow-x-auto pb-2 scrollbar-thin relative z-10">
+            <div className="min-w-[600px] md:min-w-0">
+              <img
+                src="https://ghchart.rshah.org/f97316/Fahimulislamfahim"
+                alt="Fahim's GitHub contribution calendar"
+                className="w-full relative z-10 [filter:invert(0.9)_hue-rotate(180deg)]"
+                loading="lazy"
+              />
+            </div>
+          </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-500 relative z-10">
             <span>Contribution graph · live from GitHub</span>
             <span>github.com/Fahimulislamfahim</span>
@@ -1687,11 +1811,12 @@ function GithubSection() {
 }
 
 function Education() {
+  const isMobile = useIsMobile();
   return (
     <motion.section 
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: isMobile ? "-30px" : "-100px" }}
       variants={sectionVariants}
       className="border-b border-white/5 bg-white/[0.005]"
     >
@@ -1745,10 +1870,10 @@ function Footer() {
                 href={GITHUB}
                 target="_blank"
                 rel="noreferrer"
-                className="group inline-flex items-center gap-2 font-display text-2xl italic text-zinc-300 hover:text-rust transition-colors duration-300 md:text-3xl"
+                className="group inline-flex flex-wrap items-center gap-2 font-display text-xl sm:text-2xl md:text-3xl italic text-zinc-300 hover:text-rust transition-colors duration-300"
               >
                 github.com/Fahimulislamfahim
-                <ArrowUpRight className="h-6 w-6 transition group-hover:rotate-45" />
+                <ArrowUpRight className="h-5 w-5 sm:h-6 sm:w-6 transition group-hover:rotate-45 shrink-0" />
               </a>
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
                 <a href={LINKEDIN} target="_blank" rel="noreferrer" className="hover:text-acid transition-colors flex items-center gap-1">
