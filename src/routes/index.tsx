@@ -21,15 +21,104 @@ import {
   X,
 } from "lucide-react";
 
+function MagnetElement({ children, className = "", distance = 35, ...props }: { children: React.ReactNode; className?: string; distance?: number; [key: string]: any }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springConfig = { damping: 15, stiffness: 150, mass: 0.6 };
+  const xSpring = useSpring(x, springConfig);
+  const ySpring = useSpring(y, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const distanceX = e.clientX - centerX;
+    const distanceY = e.clientY - centerY;
+    const dist = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+    if (dist < distance) {
+      const pull = 0.35;
+      x.set(distanceX * pull);
+      y.set(distanceY * pull);
+    } else {
+      x.set(0);
+      y.set(0);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: xSpring, y: ySpring }}
+      className={`inline-block ${className}`}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function TiltCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { damping: 20, stiffness: 180 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { damping: 20, stiffness: 180 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left - width / 2;
+    const mouseY = e.clientY - rect.top - height / 2;
+    x.set(mouseX / width);
+    y.set(mouseY / height);
+    ref.current.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    ref.current.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+      }}
+      className={`perspective-1000 transform-style-3d ${className}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function CustomCursor() {
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
   
-  const springConfig = { damping: 32, stiffness: 380, mass: 0.4 };
+  const springConfig = { damping: 28, stiffness: 320, mass: 0.5 };
   const cursorXSpring = useSpring(cursorX, springConfig);
   const cursorYSpring = useSpring(cursorY, springConfig);
 
-  const [cursorType, setCursorType] = useState<"default" | "hover" | "project" | "scan">("default");
+  const [cursorType, setCursorType] = useState<"default" | "hover" | "project" | "scan" | "click">("default");
   const [hoverText, setHoverText] = useState("");
 
   useEffect(() => {
@@ -38,7 +127,12 @@ function CustomCursor() {
       cursorY.set(e.clientY);
     };
 
+    const handleMouseDown = () => setCursorType("click");
+    const handleMouseUp = () => setCursorType("hover");
+
     window.addEventListener("mousemove", moveCursor);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -63,6 +157,8 @@ function CustomCursor() {
 
     return () => {
       window.removeEventListener("mousemove", moveCursor);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mouseover", handleMouseOver);
     };
   }, [cursorX, cursorY]);
@@ -80,27 +176,29 @@ function CustomCursor() {
       }}
       className={`fixed top-0 left-0 pointer-events-none z-50 rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         cursorType === "hover"
-          ? "w-10 h-10 border border-acid/60 bg-acid/5 scale-100"
+          ? "w-12 h-12 border border-acid/80 bg-acid/5 scale-100 shadow-[0_0_15px_rgba(217,249,157,0.2)]"
           : cursorType === "project"
-            ? "w-20 h-20 border border-rust bg-rust/15 scale-100"
+            ? "w-24 h-24 border border-rust bg-rust/10 scale-100 shadow-[0_0_20px_rgba(217,119,6,0.15)]"
             : cursorType === "scan"
-              ? "w-14 h-14 border border-acid/80 bg-transparent rotate-45"
-              : "w-6 h-6 border border-white/20 bg-transparent"
+              ? "w-16 h-16 border border-acid bg-transparent rotate-45 shadow-[0_0_15px_rgba(217,249,157,0.3)]"
+              : cursorType === "click"
+                ? "w-8 h-8 border border-white bg-white/10 scale-90"
+                : "w-6 h-6 border border-white/20 bg-transparent"
       }`}
     >
       {cursorType === "project" && (
-        <span className="font-mono text-[8px] uppercase tracking-widest text-rust font-bold">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-rust font-bold">
           {hoverText}
         </span>
       )}
       {cursorType === "default" && (
-        <div className="w-1 h-1 rounded-full bg-white/60" />
+        <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
       )}
       {cursorType === "hover" && (
-        <div className="w-1.5 h-1.5 rounded-full bg-acid" />
+        <div className="w-2.5 h-2.5 rounded-full bg-acid shadow-[0_0_8px_rgba(217,249,157,0.8)]" />
       )}
       {cursorType === "scan" && (
-        <div className="w-2 h-2 rounded-sm bg-acid/70 animate-pulse" />
+        <div className="w-2.5 h-2.5 rounded-sm bg-acid animate-pulse" />
       )}
     </motion.div>
   );
@@ -559,7 +657,7 @@ function Nav() {
 
   // Fade in the navbar logo as the hero text flies up and fades out
   // On mobile, keep it visible so there's always a brand identifier
-  const navLogoOpacity = useTransform(scrollY, [120, 200], [0, 1]);
+  const navLogoOpacity = useTransform(scrollY, [0, 120, 200], [0, 0, 1]);
   
   // Fade out availability on scroll down for a more minimal navbar
   const navExtraOpacity = useTransform(scrollY, [0, 100], [1, 0]);
@@ -584,62 +682,77 @@ function Nav() {
 
   return (
     <motion.header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ease-in-out border-b ${
-        isScrolled || isMobileMenuOpen
-          ? "border-white/5 bg-zinc-950/90 backdrop-blur-md py-3 shadow-md shadow-black/10"
-          : "border-transparent bg-transparent py-6"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed left-0 right-0 z-50 mx-auto w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        isMobileMenuOpen
+          ? "top-0 max-w-full h-screen bg-zinc-950/95 py-4 border-none"
+          : isScrolled
+            ? "top-4 max-w-[92%] md:max-w-[780px] border border-white/10 bg-zinc-950/75 backdrop-blur-md py-2.5 rounded-full shadow-xl shadow-black/40"
+            : "top-0 max-w-full border-b border-transparent bg-transparent py-6"
       }`}
     >
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-10">
+      <div className="mx-auto flex w-full items-center justify-between px-6 md:px-8">
         {/* Left: Logo */}
         <motion.div 
           style={{ opacity: isMobile ? 1 : navLogoOpacity }} 
-          className="w-1/2 md:w-1/4 flex justify-start"
+          className="flex items-center"
         >
-          <a
-            href="#top"
-            onClick={() => setIsMobileMenuOpen(false)}
-            onMouseEnter={() => globalSynth.playTick()}
-            className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300"
-          >
-            Fahim<span className="text-rust">.</span>
-          </a>
+          <MagnetElement distance={25}>
+            <a
+              href="#top"
+              onClick={() => setIsMobileMenuOpen(false)}
+              onMouseEnter={() => globalSynth.playTick()}
+              className="font-display text-2xl italic tracking-tight hover:text-acid transition-colors duration-300"
+            >
+              Fahim<span className="text-rust">.</span>
+            </a>
+          </MagnetElement>
         </motion.div>
 
         {/* Middle: Navigation links (Desktop) */}
-        <nav className="hidden md:flex justify-center gap-8 font-mono text-xs uppercase tracking-widest w-2/4">
-          <a
-            href="#work"
-            className="hover:text-acid transition-colors duration-300 relative group"
-          >
-            <ScrambleText text="Work" />
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
-          </a>
-          <a
-            href="#about"
-            className="hover:text-acid transition-colors duration-300 relative group"
-          >
-            <ScrambleText text="About" />
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
-          </a>
-          <a
-            href="#skills"
-            className="hover:text-acid transition-colors duration-300 relative group"
-          >
-            <ScrambleText text="Stack" />
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
-          </a>
-          <a
-            href="#contact"
-            className="hover:text-acid transition-colors duration-300 relative group"
-          >
-            <ScrambleText text="Contact" />
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-full" />
-          </a>
+        <nav className="hidden md:flex justify-center gap-6 font-mono text-xs uppercase tracking-widest">
+          <MagnetElement distance={20}>
+            <a
+              href="#work"
+              className="hover:text-acid transition-colors duration-300 relative group px-2 py-1"
+            >
+              <ScrambleText text="Work" />
+              <span className="absolute -bottom-1 left-2 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-[calc(100%-16px)]" />
+            </a>
+          </MagnetElement>
+          <MagnetElement distance={20}>
+            <a
+              href="#about"
+              className="hover:text-acid transition-colors duration-300 relative group px-2 py-1"
+            >
+              <ScrambleText text="About" />
+              <span className="absolute -bottom-1 left-2 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-[calc(100%-16px)]" />
+            </a>
+          </MagnetElement>
+          <MagnetElement distance={20}>
+            <a
+              href="#skills"
+              className="hover:text-acid transition-colors duration-300 relative group px-2 py-1"
+            >
+              <ScrambleText text="Stack" />
+              <span className="absolute -bottom-1 left-2 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-[calc(100%-16px)]" />
+            </a>
+          </MagnetElement>
+          <MagnetElement distance={20}>
+            <a
+              href="#contact"
+              className="hover:text-acid transition-colors duration-300 relative group px-2 py-1"
+            >
+              <ScrambleText text="Contact" />
+              <span className="absolute -bottom-1 left-2 w-0 h-0.5 bg-acid transition-all duration-300 group-hover:w-[calc(100%-16px)]" />
+            </a>
+          </MagnetElement>
         </nav>
 
         {/* Right: Availability & Audio Synth Toggle / Mobile Menu Trigger */}
-        <div className="w-1/2 md:w-1/4 flex items-center md:flex-col md:items-end justify-end gap-3 md:gap-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
+        <div className="flex items-center justify-end gap-3 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
           <motion.div
             style={{ opacity: isMobile ? 1 : navExtraOpacity }}
             className="hidden sm:flex items-center gap-2"
@@ -652,30 +765,32 @@ function Nav() {
           </motion.div>
           
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleMute}
-              onMouseEnter={() => globalSynth.playTick()}
-              className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[8px] font-bold tracking-widest transition-all duration-300 cursor-pointer ${
-                !isMuted
-                  ? "border-acid/30 bg-acid/10 text-acid shadow-[0_0_10px_rgba(217,249,157,0.15)]"
-                  : "border-white/5 bg-white/[0.02] text-zinc-500 hover:text-white"
-              }`}
-              title="Toggle Audio Synthesizer"
-            >
-              {!isMuted ? (
-                <>
-                  <span className="flex h-2 items-center">
-                    <span className="audio-wave-bar" />
-                    <span className="audio-wave-bar" />
-                    <span className="audio-wave-bar" />
-                    <span className="audio-wave-bar" />
-                  </span>
-                  SYNTH ON
-                </>
-              ) : (
-                "SYNTH OFF"
-              )}
-            </button>
+            <MagnetElement distance={20}>
+              <button
+                onClick={toggleMute}
+                onMouseEnter={() => globalSynth.playTick()}
+                className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[8px] font-bold tracking-widest transition-all duration-300 cursor-pointer ${
+                  !isMuted
+                    ? "border-acid/30 bg-acid/10 text-acid shadow-[0_0_10px_rgba(217,249,157,0.15)]"
+                    : "border-white/5 bg-white/[0.02] text-zinc-500 hover:text-white"
+                }`}
+                title="Toggle Audio Synthesizer"
+              >
+                {!isMuted ? (
+                  <>
+                    <span className="flex h-2 items-center">
+                      <span className="audio-wave-bar" />
+                      <span className="audio-wave-bar" />
+                      <span className="audio-wave-bar" />
+                      <span className="audio-wave-bar" />
+                    </span>
+                    SYNTH ON
+                  </>
+                ) : (
+                  "SYNTH OFF"
+                )}
+              </button>
+            </MagnetElement>
 
             {/* Mobile Menu Button */}
             <button
@@ -757,24 +872,49 @@ function Hero() {
   const [isIHovered, setIsIHovered] = useState(false);
   const [isNameHovered, setIsNameHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  
   const { scrollY } = useScroll();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const isMobile = useIsMobile();
   const y = useTransform(scrollYProgress, [0, 1], isMobile ? [0, 0] : [0, 150]);
 
-  // Scroll transforms to slide, scale, and fade the main title into the header logo position
-  // Disable these transforms on mobile since the mobile header is different and doesn't align
-  const titleX = useTransform(scrollY, [0, 200], isMobile ? ["0vw", "0vw"] : ["0vw", "-22vw"]);
-  const titleY = useTransform(scrollY, [0, 200], isMobile ? ["0px", "0px"] : ["0px", "-160px"]);
-  const titleScale = useTransform(scrollY, [0, 200], isMobile ? [1, 1] : [1, 0.16]);
-  const titleOpacity = useTransform(scrollY, [120, 200], isMobile ? [1, 1] : [1, 0]);
+  // Safe scroll transforms to slide, scale, and fade the main title into the header logo position
+  const titleX = useTransform(scrollY, [0, 120, 200], isMobile ? ["0vw", "0vw", "0vw"] : ["0vw", "0vw", "-22vw"]);
+  const titleY = useTransform(scrollY, [0, 120, 200], isMobile ? ["0px", "0px", "0px"] : ["0px", "0px", "-160px"]);
+  const titleScale = useTransform(scrollY, [0, 120, 200], isMobile ? [1, 1, 1] : [1, 1, 0.16]);
+  const titleOpacity = useTransform(scrollY, [0, 120, 200], isMobile ? [1, 1, 1] : [1, 1, 0]);
+
+  const glowX = useMotionValue(0);
+  const glowY = useMotionValue(0);
+
+  const handleHeroMouseMove = (e: React.MouseEvent) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    glowX.set(e.clientX - rect.left);
+    glowY.set(e.clientY - rect.top);
+  };
+
+  const bgGlow = useTransform(
+    [glowX, glowY],
+    ([xVal, yVal]) => `radial-gradient(600px circle at ${xVal}px ${yVal}px, rgba(217, 119, 6, 0.04) 0%, transparent 70%)`
+  );
 
   return (
-    <section id="top" ref={ref} className="relative border-b border-white/5 overflow-hidden">
-      {/* Background soft glow */}
+    <section 
+      id="top" 
+      ref={heroRef} 
+      onMouseMove={handleHeroMouseMove}
+      className="relative border-b border-white/5 overflow-hidden"
+    >
+      {/* Interactive Background soft glow */}
+      <motion.div 
+        style={{ background: bgGlow }}
+        className="absolute inset-0 pointer-events-none z-0"
+      />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rust/5 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="mx-auto grid max-w-[1400px] grid-cols-12 gap-6 px-6 pb-20 pt-12 md:px-10 md:pb-32 md:pt-24 relative z-10">
+      <div ref={ref} className="mx-auto grid max-w-[1400px] grid-cols-12 gap-6 px-6 pb-20 pt-12 md:px-10 md:pb-32 md:pt-24 relative z-10">
         {/* Left column: meta */}
         <div className="col-span-12 md:col-span-3 space-y-6 font-mono text-xs uppercase tracking-widest text-zinc-500">
           <div>
@@ -796,9 +936,9 @@ function Hero() {
         {/* Center: big type */}
         <div className="col-span-12 md:col-span-6">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <motion.h1
               style={{
@@ -811,26 +951,26 @@ function Hero() {
               className="font-display text-[18vw] leading-[0.85] tracking-tight md:text-[10rem] select-none cursor-default"
             >
               <motion.span
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
                 onMouseEnter={() => setIsNameHovered(true)}
                 onMouseLeave={() => setIsNameHovered(false)}
                 className="hover:text-rust transition-colors duration-500 cursor-pointer inline-block"
               >Fah</motion.span>
               <motion.span 
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                 onMouseEnter={() => setIsIHovered(true)}
                 onMouseLeave={() => setIsIHovered(false)}
                 className="italic text-rust hover:text-acid transition-colors duration-500 cursor-pointer inline-block"
                 data-cursor-state="scan"
               >i</motion.span>
               <motion.span
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
                 onMouseEnter={() => setIsNameHovered(true)}
                 onMouseLeave={() => setIsNameHovered(false)}
                 className="hover:text-rust transition-colors duration-500 cursor-pointer inline-block"
@@ -840,7 +980,7 @@ function Hero() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
+            transition={{ delay: 0.15, duration: 0.7 }}
             className="mt-6 max-w-lg text-lg leading-relaxed text-zinc-400 md:text-xl"
           >
             Cross-platform app developer & full-stack builder. I ship Flutter apps, AI automation systems and SaaS platforms — from Dhaka.
@@ -848,95 +988,107 @@ function Hero() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ delay: 0.25, duration: 0.7 }}
             className="mt-10 flex flex-wrap items-center gap-4"
           >
-            <a
-              href="#work"
-              className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-mono text-xs uppercase tracking-widest text-black transition-all duration-300 hover:bg-acid"
-            >
-              See selected work <ArrowUpRight className="h-4 w-4 transition group-hover:rotate-45" />
-            </a>
+            <MagnetElement distance={25}>
+              <a
+                href="#work"
+                className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-mono text-xs uppercase tracking-widest text-black transition-all duration-300 hover:bg-acid cursor-pointer"
+              >
+                See selected work <ArrowUpRight className="h-4 w-4 transition group-hover:rotate-45" />
+              </a>
+            </MagnetElement>
             
             <div className="flex flex-wrap gap-2.5 items-center">
-              <a
-                href={GITHUB}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 font-mono text-xs uppercase tracking-widest text-white transition-all duration-300 hover:bg-white/10 hover:border-white/20"
-              >
-                <Github className="h-4 w-4 text-zinc-400" /> GitHub
-              </a>
-              <a
-                href={LINKEDIN}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                title="LinkedIn"
-              >
-                <Linkedin className="h-4 w-4" />
-              </a>
-              <a
-                href={FACEBOOK}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                title="Facebook"
-              >
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a
-                href={THREADS}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                title="Threads"
-              >
-                <Globe className="h-4 w-4" />
-              </a>
+              <MagnetElement distance={20}>
+                <a
+                  href={GITHUB}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 font-mono text-xs uppercase tracking-widest text-white transition-all duration-300 hover:bg-white/10 hover:border-white/20 cursor-pointer"
+                >
+                  <Github className="h-4 w-4 text-zinc-400" /> GitHub
+                </a>
+              </MagnetElement>
+              <MagnetElement distance={15}>
+                <a
+                  href={LINKEDIN}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                  title="LinkedIn"
+                >
+                  <Linkedin className="h-4 w-4" />
+                </a>
+              </MagnetElement>
+              <MagnetElement distance={15}>
+                <a
+                  href={FACEBOOK}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                  title="Facebook"
+                >
+                  <Facebook className="h-4 w-4" />
+                </a>
+              </MagnetElement>
+              <MagnetElement distance={15}>
+                <a
+                  href={THREADS}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                  title="Threads"
+                >
+                  <Globe className="h-4 w-4" />
+                </a>
+              </MagnetElement>
             </div>
           </motion.div>
         </div>
 
         {/* Right: portrait card */}
         <motion.div style={{ y }} className="col-span-12 md:col-span-3">
-          <motion.div 
-            whileHover={{ scale: 1.02, y: -4 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="relative aspect-[3/4] w-full border border-white/10 rounded-2xl bg-zinc-900 overflow-hidden shadow-[0_0_50px_rgba(217,119,6,0.05)] group"
-          >
-            {/* Base Regular Image */}
-            <img 
-              src="/fahim.jpg" 
-              alt="Fahim" 
-              className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
-                isIHovered 
-                  ? "grayscale-0 scale-100 opacity-0" 
-                  : isNameHovered
-                    ? "grayscale-0 scale-100 opacity-100"
-                    : "grayscale group-hover:grayscale-0 group-hover:scale-105 opacity-100"
-              }`}
-            />
-            {/* Scan Image (Active on 'i' hover) */}
-            <img 
-              src="/fahim-scan.jpg" 
-              alt="Fahim Scan" 
-              className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out pointer-events-none ${
-                isIHovered 
-                  ? "opacity-100 scale-100" 
-                  : "opacity-0 scale-100"
-              }`}
-            />
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity duration-500 ${
-              isIHovered || isNameHovered ? "opacity-60" : "opacity-80 group-hover:opacity-60"
-            }`} />
-            <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-zinc-300">
-              FIG. 01
-            </div>
-            <div className="absolute bottom-4 right-4 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white">
-              Fahim · 2026
-            </div>
-          </motion.div>
+          <TiltCard>
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="relative aspect-[3/4] w-full border border-white/10 rounded-2xl bg-zinc-900 overflow-hidden shadow-[0_0_50px_rgba(217,119,6,0.05)] group"
+            >
+              {/* Base Regular Image */}
+              <img 
+                src="/fahim.jpg" 
+                alt="Fahim" 
+                className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+                  isIHovered 
+                    ? "grayscale-0 scale-100 opacity-0" 
+                    : isNameHovered
+                      ? "grayscale-0 scale-100 opacity-100"
+                      : "grayscale group-hover:grayscale-0 group-hover:scale-105 opacity-100"
+                }`}
+              />
+              {/* Scan Image (Active on 'i' hover) */}
+              <img 
+                src="/fahim-scan.jpg" 
+                alt="Fahim Scan" 
+                className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out pointer-events-none ${
+                  isIHovered 
+                    ? "opacity-100 scale-100" 
+                    : "opacity-0 scale-100"
+                }`}
+              />
+              <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity duration-500 ${
+                isIHovered || isNameHovered ? "opacity-60" : "opacity-80 group-hover:opacity-60"
+              }`} />
+              <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-zinc-300">
+                FIG. 01
+              </div>
+              <div className="absolute bottom-4 right-4 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white">
+                Fahim · 2026
+              </div>
+            </motion.div>
+          </TiltCard>
           <div className="mt-3 flex justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-500">
             <span>Dhaka 23.8103° N</span>
             <span>90.4125° E</span>
@@ -1027,6 +1179,7 @@ function RiderDashboard() {
   const [rpm, setRpm] = useState(1000);
   const [gear, setGear] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
+  const [speedHistory, setSpeedHistory] = useState<number[]>(new Array(20).fill(0));
   
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
@@ -1048,12 +1201,14 @@ function RiderDashboard() {
         setSpeed((prev) => {
           const target = isHovered ? 134 : 74;
           const diff = target - prev;
-          return Math.round(prev + diff * 0.08 + (Math.random() - 0.5) * 2);
+          const nextSpeed = Math.round(prev + diff * 0.08 + (Math.random() - 0.5) * 2);
+          return Math.max(0, Math.min(140, nextSpeed));
         });
         setRpm((prev) => {
           const target = isHovered ? 8200 : 3100;
           const diff = target - prev;
-          return Math.round(prev + diff * 0.12 + (Math.random() - 0.5) * 120);
+          const nextRpm = Math.round(prev + diff * 0.12 + (Math.random() - 0.5) * 120);
+          return Math.max(1000, Math.min(10000, nextRpm));
         });
         setGear((prev) => {
           if (speed > 90) return 5;
@@ -1073,6 +1228,16 @@ function RiderDashboard() {
     return () => clearInterval(interval);
   }, [isEngineOn, isHovered, speed]);
 
+  useEffect(() => {
+    const historyInterval = setInterval(() => {
+      setSpeedHistory((prev) => {
+        const currentSpeed = isEngineOn ? speed : 0;
+        return [...prev.slice(1), currentSpeed];
+      });
+    }, 150);
+    return () => clearInterval(historyInterval);
+  }, [speed, isEngineOn]);
+
   const maxRpm = 10000;
   const rpmRotation = ((rpm - 1000) / (maxRpm - 1000)) * 240 - 120;
 
@@ -1085,7 +1250,9 @@ function RiderDashboard() {
       onTouchStart={() => { setIsHovered(true); globalSynth.playTone(196.00); }}
       onTouchEnd={() => setIsHovered(false)}
       onTouchCancel={() => setIsHovered(false)}
-      className="glow-card-rust border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none"
+      className={`glow-card-rust border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none transition-all duration-300 ${
+        isEngineOn ? "engine-rumble shadow-[0_0_30px_rgba(217,119,6,0.08)] border-rust/15" : ""
+      }`}
     >
       <div className="glow-bg" />
       <div className="absolute inset-0 dashboard-grid-pattern opacity-[0.12] pointer-events-none" />
@@ -1192,22 +1359,29 @@ function RiderDashboard() {
             {isEngineOn ? "● ACTIVE TRACKING" : "STANDBY"}
           </span>
         </div>
-        <div className="h-8 w-full bg-zinc-950/40 rounded border border-white/5 relative overflow-hidden flex items-center px-4">
+        <div className="h-10 w-full bg-zinc-950/40 rounded border border-white/5 relative overflow-hidden flex items-center px-2">
           <svg className="w-full h-full text-zinc-800" viewBox="0 0 200 40">
+            <defs>
+              <linearGradient id="speed-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-rust)" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="var(--color-rust)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
             <path
               id="route-path"
               d="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1"
               strokeDasharray="4 4"
+              className="opacity-40"
             />
             {isEngineOn && (
               <motion.path
                 d="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
                 fill="none"
-                stroke="var(--color-rust)"
-                strokeWidth="1.5"
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth="1"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={{
@@ -1217,8 +1391,23 @@ function RiderDashboard() {
                 }}
               />
             )}
+            {/* Speed History Telemetry Line */}
+            <path
+              d={`M ${speedHistory.map((s, idx) => `${10 + idx * 9} ${32 - (s / 140) * 22}`).join(" L ")}`}
+              fill="none"
+              stroke="var(--color-rust)"
+              strokeWidth="1.5"
+              className="transition-all duration-150 ease-out opacity-80"
+              style={{ filter: "drop-shadow(0 0 4px var(--color-rust))" }}
+            />
+            {/* Ambient fill underneath speed graph */}
+            <path
+              d={`M 10 35 L ${speedHistory.map((s, idx) => `${10 + idx * 9} ${32 - (s / 140) * 22}`).join(" L ")} L 181 35 Z`}
+              fill="url(#speed-gradient)"
+              className="opacity-20 transition-all duration-150 ease-out"
+            />
             {isEngineOn && (
-              <circle r="3.5" fill="var(--color-acid)" className="shadow-[0_0_8px_var(--color-acid)]">
+              <circle r="2.5" fill="var(--color-acid)" className="shadow-[0_0_8px_var(--color-acid)]">
                 <animateMotion
                   path="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
                   dur="6s"
@@ -1296,6 +1485,7 @@ function AIPipelineSimulator() {
     "System ready. Click below to simulate pipeline."
   ]);
   const [isRunning, setIsRunning] = useState(false);
+  const [currentTypingText, setCurrentTypingText] = useState("");
   
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -1340,25 +1530,46 @@ function AIPipelineSimulator() {
     ]
   ];
 
+  const typeLog = (text: string, delay = 15) => {
+    return new Promise<void>((resolve) => {
+      let i = 0;
+      setCurrentTypingText("");
+      const interval = setInterval(() => {
+        setCurrentTypingText((prev) => prev + text[i]);
+        i++;
+        if (i >= text.length) {
+          clearInterval(interval);
+          setLogs((prev) => [...prev.slice(-3), text]);
+          setCurrentTypingText("");
+          resolve();
+        }
+      }, delay);
+    });
+  };
+
   const triggerPipeline = async () => {
     if (isRunning) return;
     setIsRunning(true);
-    setLogs(["[Pipeline] Launching Multi-Agent flow..."]);
+    setLogs([]);
+    setCurrentTypingText("");
+    
+    await typeLog("[Pipeline] Launching Multi-Agent flow...", 15);
+    await new Promise((resolve) => setTimeout(resolve, 200));
     
     for (let step = 0; step < 4; step++) {
       setActiveStep(step);
-      globalSynth.playTone(329.63 + step * 65); // Play a rising synth note for each active agent node!
+      globalSynth.playTone(329.63 + step * 65);
       for (const logLine of simulatedLogs[step]) {
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        setLogs((prev) => [...prev.slice(-4), logLine]);
-        globalSynth.playTick(); // Tick on each printed log line
+        globalSynth.playTick();
+        await typeLog(logLine, 8);
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 150));
     }
     
     setActiveStep(null);
     setIsRunning(false);
-    globalSynth.playTone(523.25); // C5 alert when fully completed!
+    globalSynth.playTone(523.25);
   };
 
   return (
@@ -1366,7 +1577,9 @@ function AIPipelineSimulator() {
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => globalSynth.playTone(220.00)}
-      className="glow-card-acid border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none"
+      className={`glow-card-acid border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none transition-all duration-300 ${
+        isRunning ? "shadow-[0_0_30px_rgba(217,249,157,0.06)] border-acid/15" : ""
+      }`}
     >
       <div className="glow-bg" />
       <div className="absolute inset-0 dashboard-grid-pattern opacity-[0.12] pointer-events-none" />
@@ -1413,7 +1626,7 @@ function AIPipelineSimulator() {
                 >
                   <span className="font-mono text-[9px] font-bold">AG-0{idx + 1}</span>
                 </div>
-                <span className={`font-mono text-[7px] tracking-wide mt-1.5 ${isActive ? "text-acid font-bold" : "text-zinc-500"}`}>
+                <span className={`font-mono text-[7px] tracking-wide mt-1.5 ${isActive ? "text-acid font-bold animate-pulse" : "text-zinc-500"}`}>
                   {step.name}
                 </span>
               </div>
@@ -1463,6 +1676,12 @@ function AIPipelineSimulator() {
               {log}
             </p>
           ))}
+          {currentTypingText && (
+            <p className="leading-normal text-white font-semibold">
+              {currentTypingText}
+              <span className="inline-block w-1 h-2 bg-white ml-0.5 animate-pulse" />
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -1662,6 +1881,16 @@ function Projects() {
   const x = useSpring(mouseX, springConfig);
   const y = useSpring(mouseY, springConfig);
 
+  // Calculate dynamic 3D tilt for the preview card based on its movement velocity
+  const rotateX = useTransform(y, (latestY) => {
+    if (hoveredIndex === null) return 0;
+    return (latestY / 10) % 10 - 5;
+  });
+  const rotateY = useTransform(x, (latestX) => {
+    if (hoveredIndex === null) return 0;
+    return (latestX / 10) % 10 - 5;
+  });
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
@@ -1704,6 +1933,10 @@ function Projects() {
             style={{
               x,
               y,
+              rotateX,
+              rotateY,
+              transformStyle: "preserve-3d",
+              perspective: "1000px",
               pointerEvents: "none",
               opacity: hoveredIndex !== null ? 1 : 0,
               scale: hoveredIndex !== null ? 1 : 0.85,
@@ -1755,8 +1988,6 @@ function Projects() {
     </motion.section>
   );
 }
-
-
 
 function GithubSection() {
   const isMobile = useIsMobile();
