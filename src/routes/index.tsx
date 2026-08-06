@@ -171,35 +171,37 @@ function CustomCursor() {
       style={{
         x: cursorXSpring,
         y: cursorYSpring,
-        translateX: "-50%",
-        translateY: "-50%",
       }}
-      className={`fixed top-0 left-0 pointer-events-none z-50 rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        cursorType === "hover"
-          ? "w-12 h-12 border border-acid/80 bg-acid/5 scale-100 shadow-[0_0_15px_rgba(217,249,157,0.2)]"
-          : cursorType === "project"
-            ? "w-24 h-24 border border-rust bg-rust/10 scale-100 shadow-[0_0_20px_rgba(217,119,6,0.15)]"
-            : cursorType === "scan"
-              ? "w-16 h-16 border border-acid bg-transparent rotate-45 shadow-[0_0_15px_rgba(217,249,157,0.3)]"
-              : cursorType === "click"
-                ? "w-8 h-8 border border-white bg-white/10 scale-90"
-                : "w-6 h-6 border border-white/20 bg-transparent"
-      }`}
+      className="fixed top-0 left-0 w-0 h-0 pointer-events-none z-[100]"
     >
-      {cursorType === "project" && (
-        <span className="font-mono text-[9px] uppercase tracking-widest text-rust font-bold">
-          {hoverText}
-        </span>
-      )}
-      {cursorType === "default" && (
-        <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
-      )}
-      {cursorType === "hover" && (
-        <div className="w-2.5 h-2.5 rounded-full bg-acid shadow-[0_0_8px_rgba(217,249,157,0.8)]" />
-      )}
-      {cursorType === "scan" && (
-        <div className="w-2.5 h-2.5 rounded-sm bg-acid animate-pulse" />
-      )}
+      <div
+        className={`absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          cursorType === "hover"
+            ? "w-12 h-12 border border-acid/80 bg-acid/5 scale-100 shadow-[0_0_15px_rgba(217,249,157,0.2)]"
+            : cursorType === "project"
+              ? "w-24 h-24 border border-rust bg-rust/10 scale-100 shadow-[0_0_20px_rgba(217,119,6,0.15)]"
+              : cursorType === "scan"
+                ? "w-16 h-16 border border-acid bg-transparent rotate-45 shadow-[0_0_15px_rgba(217,249,157,0.3)]"
+                : cursorType === "click"
+                  ? "w-8 h-8 border border-white bg-white/10 scale-90"
+                  : "w-6 h-6 border border-white/20 bg-transparent"
+        }`}
+      >
+        {cursorType === "project" && (
+          <span className="font-mono text-[9px] uppercase tracking-widest text-rust font-bold">
+            {hoverText}
+          </span>
+        )}
+        {cursorType === "default" && (
+          <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
+        )}
+        {cursorType === "hover" && (
+          <div className="w-2.5 h-2.5 rounded-full bg-acid shadow-[0_0_8px_rgba(217,249,157,0.8)]" />
+        )}
+        {cursorType === "scan" && (
+          <div className="w-2.5 h-2.5 rounded-sm bg-acid animate-pulse" />
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -410,7 +412,7 @@ const projects = [
     n: "03",
     name: "InstaRise",
     tag: "Automation · Growth",
-    year: "2024",
+    year: "2026",
     desc: "Autonomous Instagram automation & follower growth engine built on a custom queue/action workflow.",
     accent: "rust",
     github: "https://github.com/Fahimulislamfahim/InstaRise.git",
@@ -419,7 +421,7 @@ const projects = [
     n: "04",
     name: "MotoFile",
     tag: "Mobile · Utility",
-    year: "2024",
+    year: "2026",
     desc: "Digital vehicle documentation vault enabling riders to securely store, verify and manage essential papers.",
     accent: "acid",
     github: "https://github.com/Fahimulislamfahim/MotoFile.git",
@@ -659,8 +661,6 @@ function Nav() {
   // On mobile, keep it visible so there's always a brand identifier
   const navLogoOpacity = useTransform(scrollY, [0, 120, 200], [0, 0, 1]);
   
-  // Fade out availability on scroll down for a more minimal navbar
-  const navExtraOpacity = useTransform(scrollY, [0, 100], [1, 0]);
 
   useEffect(() => {
     return scrollY.on("change", (latest) => {
@@ -753,44 +753,17 @@ function Nav() {
 
         {/* Right: Availability & Audio Synth Toggle / Mobile Menu Trigger */}
         <div className="flex items-center justify-end gap-3 font-mono text-[9px] uppercase tracking-widest text-zinc-400">
-          <motion.div
-            style={{ opacity: isMobile ? 1 : navExtraOpacity }}
-            className="hidden sm:flex items-center gap-2"
-          >
-            <span className="relative flex h-1.5 w-1.5">
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="relative flex h-1.5 w-1.5 shrink-0">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-acid opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-acid" />
             </span>
-            <span>Available for work</span>
-          </motion.div>
+            <span className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? "max-w-0 opacity-0" : "max-w-[200px] opacity-100"}`}>
+              Available for work
+            </span>
+          </div>
           
           <div className="flex items-center gap-2">
-            <MagnetElement distance={20}>
-              <button
-                onClick={toggleMute}
-                onMouseEnter={() => globalSynth.playTick()}
-                className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[8px] font-bold tracking-widest transition-all duration-300 cursor-pointer ${
-                  !isMuted
-                    ? "border-acid/30 bg-acid/10 text-acid shadow-[0_0_10px_rgba(217,249,157,0.15)]"
-                    : "border-white/5 bg-white/[0.02] text-zinc-500 hover:text-white"
-                }`}
-                title="Toggle Audio Synthesizer"
-              >
-                {!isMuted ? (
-                  <>
-                    <span className="flex h-2 items-center">
-                      <span className="audio-wave-bar" />
-                      <span className="audio-wave-bar" />
-                      <span className="audio-wave-bar" />
-                      <span className="audio-wave-bar" />
-                    </span>
-                    SYNTH ON
-                  </>
-                ) : (
-                  "SYNTH OFF"
-                )}
-              </button>
-            </MagnetElement>
 
             {/* Mobile Menu Button */}
             <button
@@ -1719,8 +1692,6 @@ function Skills() {
           {skills.map((s, i) => (
             <SkillCard key={s.title} s={s} i={i} />
           ))}
-          <AIPipelineSimulator />
-          <RiderDashboard />
         </motion.div>
       </div>
     </motion.section>
@@ -1941,7 +1912,7 @@ function Projects() {
               opacity: hoveredIndex !== null ? 1 : 0,
               scale: hoveredIndex !== null ? 1 : 0.85,
             }}
-            className="absolute z-30 w-[240px] h-[160px] hidden md:block rounded-xl overflow-hidden border border-white/15 bg-zinc-950/80 backdrop-blur-md shadow-2xl p-1"
+            className="absolute top-0 left-0 z-30 w-[240px] h-[160px] hidden md:block rounded-xl overflow-hidden border border-white/15 bg-zinc-950/80 backdrop-blur-md shadow-2xl p-1"
             transition={{ opacity: { duration: 0.15 }, scale: { duration: 0.15 } }}
           >
             {hoveredIndex !== null && <ProjectPreview index={hoveredIndex} />}
@@ -1960,7 +1931,7 @@ function Projects() {
             >
               <div className="mx-auto grid grid-cols-12 items-baseline gap-4">
                 <span className="col-span-2 font-mono text-xs text-zinc-600 group-hover:text-white transition-colors duration-300 md:col-span-1">{p.n}</span>
-                <h3 className="col-span-10 font-display text-3xl leading-none group-hover:translate-x-4 group-hover:text-acid md:col-span-5 md:text-5xl transition-all duration-500 ease-out text-zinc-100 font-medium flex items-center gap-2">
+                <h3 className="col-span-10 font-display text-3xl leading-none group-hover:translate-x-4 group-hover:text-acid md:col-span-5 md:text-5xl transition-all duration-500 ease-out text-zinc-100 font-medium flex items-center gap-2 transform-gpu">
                   {p.name}
                   <ArrowUpRight className="h-5 w-5 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300 text-acid" />
                 </h3>
