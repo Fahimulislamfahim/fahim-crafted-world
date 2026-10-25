@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useMotionValue, useSpring, AnimatePresence } from "motion/react";
+import { motion, useScroll, useTransform, useMotionValue, useSpring, AnimatePresence, type Variants } from "motion/react";
 import { useRef, useState, useEffect } from "react";
 import Lenis from "lenis";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -7,7 +7,7 @@ import {
   ArrowUpRight,
   Github,
   MapPin,
-  Bike,
+  Activity,
   Sparkles,
   Code2,
   Cpu,
@@ -19,6 +19,9 @@ import {
   Globe,
   Menu,
   X,
+  Radio,
+  ShieldCheck,
+  Server,
 } from "lucide-react";
 
 function MagnetElement({ children, className = "", distance = 35, ...props }: { children: React.ReactNode; className?: string; distance?: number; [key: string]: any }) {
@@ -369,23 +372,23 @@ const THREADS = "https://www.threads.net/@fahim.0.1";
 const skills = [
   {
     icon: Smartphone,
-    title: "Mobile Development",
-    items: ["Flutter", "Dart"],
+    title: "Mobile Architecture",
+    items: ["Flutter", "Dart", "Kotlin", "Edge-First", "Offline Storage", "Biometrics"],
   },
   {
-    icon: Code2,
-    title: "Languages & Tools",
-    items: ["Python", "Java", "JavaScript", "Dart", "PHP", "VS Code", "Antigravity IDE", "Git"],
+    icon: Terminal,
+    title: "Systems & Backend",
+    items: ["C++", "Python", "FastAPI", "PostgreSQL", "Socket.io", "WebSockets", "Git"],
   },
   {
     icon: Cpu,
-    title: "AI & Automation",
-    items: ["Workflow Automation", "Multi-agent SaaS", "Custom Agents"],
+    title: "AI & Distributed Systems",
+    items: ["Multi-Agent Pipelines", "Google Gemini API", "Event-Driven Flows", "Async Task Queues"],
   },
   {
     icon: Cloud,
-    title: "Cloud & Deploy",
-    items: ["Vercel", "GitHub Pack", "Server Deployment"],
+    title: "Embedded & Infrastructure",
+    items: ["ESP32 / ESP8266", "I2C Telemetry", "Hardware Hooks", "Docker", "Linux Deploy"],
   },
 ];
 
@@ -393,65 +396,74 @@ const projects = [
   {
     n: "01",
     name: "Personify",
-    tag: "SaaS · AI",
+    tag: "Multi-Agent AI · Asynchronous FastAPI",
     year: "2026",
-    desc: "AI-powered Social Media Management (SMM) SaaS with a multi-agent Google Gemini pipeline & high-fidelity Flutter dashboard.",
+    desc: "Autonomous multi-agent social automation infrastructure orchestrating Google Gemini (gemini-2.5-flash) pipelines with asynchronous FastAPI services and a high-fidelity Flutter management dashboard.",
     accent: "acid",
     github: "https://github.com/Fahimulislamfahim/Personify.git",
   },
   {
     n: "02",
     name: "CoRide",
-    tag: "Mobile · Rideshare",
+    tag: "Real-Time Systems · WebSockets · Flutter",
     year: "2026",
-    desc: "Campus ridesharing & carpooling platform for DIU using WebSocket tracking, geospatial pricing, and Flutter.",
+    desc: "Campus transit & carpooling ecosystem featuring bidirectional WebSocket live-tracking via Socket.io, geospatial route matching, dynamic fare partitioning, and relational PostgreSQL persistence.",
     accent: "acid",
     github: "https://github.com/Fahimulislamfahim/CoRide.git",
   },
   {
     n: "03",
-    name: "InstaRise",
-    tag: "Automation · Growth",
+    name: "Sathee (Abhay)",
+    tag: "Edge-First Mobile · Kotlin · Fault Tolerance",
     year: "2026",
-    desc: "Autonomous Instagram automation & follower growth engine built on a custom queue/action workflow.",
+    desc: "Critical emergency response mobile system engineered with silent hardware trigger hooks, background sensor monitoring, route-divergence heuristics, and autonomous 2G SMS failover broadcasts.",
     accent: "rust",
-    github: "https://github.com/Fahimulislamfahim/InstaRise.git",
+    github: "https://github.com/Fahimulislamfahim/Sathee.git",
   },
   {
     n: "04",
     name: "MotoFile",
-    tag: "Mobile · Utility",
+    tag: "Biometric Security · Encrypted Storage",
     year: "2026",
-    desc: "Digital vehicle documentation vault enabling riders to securely store, verify and manage essential papers.",
+    desc: "Hardware-isolated document security application integrating native biometric keystore authentication (Fingerprint/FaceID), encrypted local SQLite storage, and an integrated PDF rendering engine.",
     accent: "acid",
     github: "https://github.com/Fahimulislamfahim/MotoFile.git",
   },
   {
     n: "05",
-    name: "BikeShopBd",
-    tag: "E-Commerce · Web",
-    year: "2025",
-    desc: "Complete motorcycle and parts e-commerce retail platform featuring custom booking & parts ordering.",
+    name: "DeskBot",
+    tag: "IoT & Embedded Systems · C++ · Hardware",
+    year: "2026",
+    desc: "Interactive embedded desktop companion running on ESP8266/ESP32 microcontrollers, featuring an onboard HTTP server, I2C OLED display driver, and bidirectional WebSockets for hardware telemetry.",
     accent: "rust",
-    github: "https://github.com/Fahimulislamfahim/BikeShopBd.git",
+    github: "https://github.com/Fahimulislamfahim/DeskBot.git",
+  },
+  {
+    n: "06",
+    name: "Smart Tracker Engine",
+    tag: "Core Systems Software · C++",
+    year: "2026",
+    desc: "Deterministic scheduling and recurring habit evaluation daemon built with memory-efficient algorithmic data structures and local state persistence in modern C++.",
+    accent: "acid",
+    github: "https://github.com/Fahimulislamfahim/Smart-Task-Habit-Tracker.git",
   },
 ];
 
-const sectionVariants = {
+const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.16, 1, 0.3, 1],
+      ease: [0.16, 1, 0.3, 1] as const,
     },
   },
 };
 
-const fadeInReveal = sectionVariants;
+const fadeInReveal: Variants = sectionVariants;
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -482,7 +494,7 @@ function Portfolio() {
         const href = anchor.getAttribute("href");
         if (href && href.startsWith("#")) {
           e.preventDefault();
-          const targetElement = document.querySelector(href);
+          const targetElement = document.querySelector<HTMLElement>(href);
           if (targetElement) {
             if (lenis) {
               lenis.scrollTo(targetElement);
@@ -901,8 +913,8 @@ function Hero() {
             </div>
           </div>
           <div>
-            <div className="text-zinc-600">Studying</div>
-            <div className="mt-1 text-zinc-300">B.Sc SWE · DIU · Yr 3</div>
+            <div className="text-zinc-600">Discipline</div>
+            <div className="mt-1 text-zinc-300">Software Engineering · DIU</div>
           </div>
         </div>
 
@@ -956,7 +968,7 @@ function Hero() {
             transition={{ delay: 0.15, duration: 0.7 }}
             className="mt-6 max-w-lg text-lg leading-relaxed text-zinc-400 md:text-xl"
           >
-            Cross-platform app developer & full-stack builder. I ship Flutter apps, AI automation systems and SaaS platforms — from Dhaka.
+            Software engineer specializing in high-performance distributed systems, edge-first mobile architectures, and real-time streaming platforms. Architecting resilient services and low-latency client experiences.
           </motion.p>
           <motion.div 
             initial={{ opacity: 0 }}
@@ -1074,8 +1086,15 @@ function Hero() {
 
 function Marquee() {
   const words = [
-    "Flutter", "AI Automation", "SaaS", "Full-Stack", "Cross-Platform",
-    "Cloud Deploy", "Multi-Channel", "Motorbike Rider",
+    "Distributed Systems",
+    "Cross-Platform Mobile",
+    "Real-Time WebSockets",
+    "Event-Driven Architecture",
+    "Edge-First Systems",
+    "API Design",
+    "Embedded Firmware",
+    "High Concurrency",
+    "Fault Tolerance",
   ];
   const line = [...words, ...words, ...words];
   return (
@@ -1112,32 +1131,29 @@ function About() {
             § 02 — About
           </div>
           <h2 className="mt-4 font-display text-5xl leading-[1.1] md:text-7xl">
-            Builder<br />
-            <span className="italic text-rust">by day,</span><br />
-            rider<br />
-            <span className="italic text-zinc-400">by dusk.</span>
+            Architecting<br />
+            <span className="italic text-rust">for scale,</span><br />
+            engineered<br />
+            <span className="italic text-zinc-400">for resilience.</span>
           </h2>
         </div>
         <div className="col-span-12 md:col-span-7 md:col-start-6 space-y-6 text-base leading-relaxed text-zinc-400 md:text-lg">
           <p>
-            I'm a 3rd-year Software Engineering student at{" "}
-            <span className="underline decoration-rust decoration-1 underline-offset-4 text-white">
-              Daffodil International University
-            </span>{" "}
-            in Dhaka — but the classroom is only half of it. The other half is a workshop of
-            cross-platform apps, AI automation flows and quietly-shipped SaaS experiments.
+            Software Engineer based in Dhaka, focused on designing distributed systems,
+            edge-first mobile architectures, and real-time streaming backends. My work centers on
+            building fault-tolerant client-server ecosystems that scale deterministically under high concurrency.
           </p>
           <p>
-            I care about products that survive contact with real users. That means Flutter
-            builds that run smooth on cheap phones, backends that don't fold under load, and
-            interfaces that feel human, not templated.
+            Whether implementing bidirectional WebSocket state synchronization, hardware-level
+            biometric isolation, or asynchronous multi-agent LLM orchestration pipelines, I prioritize
+            algorithmic efficiency, predictable p99 latency, and clean boundary separation.
           </p>
           <div className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] px-6 py-4">
             <div className="p-2 rounded-lg bg-rust/10 text-rust">
-              <Bike className="h-5 w-5" />
+              <Activity className="h-5 w-5" />
             </div>
             <span className="font-mono text-xs tracking-wide text-zinc-300">
-              Off-screen: motorbike riding, tinkering, chai at odd hours.
+              Core Focus: Distributed systems, event-driven streaming, edge computing & cross-platform client architecture.
             </span>
           </div>
         </div>
@@ -1146,13 +1162,15 @@ function About() {
   );
 }
 
-function RiderDashboard() {
-  const [isEngineOn, setIsEngineOn] = useState(false);
-  const [speed, setSpeed] = useState(0);
-  const [rpm, setRpm] = useState(1000);
-  const [gear, setGear] = useState(1);
+function TelemetryDashboard() {
+  const [isStreaming, setIsStreaming] = useState(true);
+  const [latency, setLatency] = useState(42);
+  const [throughput, setThroughput] = useState(1.8);
+  const [activeSockets, setActiveSockets] = useState(1024);
   const [isHovered, setIsHovered] = useState(false);
-  const [speedHistory, setSpeedHistory] = useState<number[]>(new Array(20).fill(0));
+  const [telemetryHistory, setTelemetryHistory] = useState<number[]>([
+    38, 42, 40, 45, 41, 39, 43, 44, 42, 38, 41, 46, 43, 39, 40, 42, 44, 41, 39, 42
+  ]);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
@@ -1169,62 +1187,61 @@ function RiderDashboard() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isEngineOn) {
+    if (isStreaming) {
       interval = setInterval(() => {
-        setSpeed((prev) => {
-          const target = isHovered ? 134 : 74;
-          const diff = target - prev;
-          const nextSpeed = Math.round(prev + diff * 0.08 + (Math.random() - 0.5) * 2);
-          return Math.max(0, Math.min(140, nextSpeed));
+        setLatency((prev) => {
+          const target = isHovered ? 24 : 42;
+          const jitter = (Math.random() - 0.5) * 6;
+          const next = Math.round(prev + (target - prev) * 0.15 + jitter);
+          return Math.max(18, Math.min(65, next));
         });
-        setRpm((prev) => {
-          const target = isHovered ? 8200 : 3100;
-          const diff = target - prev;
-          const nextRpm = Math.round(prev + diff * 0.12 + (Math.random() - 0.5) * 120);
-          return Math.max(1000, Math.min(10000, nextRpm));
+        setThroughput((prev) => {
+          const target = isHovered ? 2.8 : 1.4;
+          const jitter = (Math.random() - 0.5) * 0.3;
+          const next = +(prev + (target - prev) * 0.12 + jitter).toFixed(2);
+          return Math.max(0.6, Math.min(3.6, next));
         });
-        setGear((prev) => {
-          if (speed > 90) return 5;
-          if (speed > 65) return 4;
-          if (speed > 40) return 3;
-          if (speed > 18) return 2;
-          return 1;
+        setActiveSockets((prev) => {
+          const target = isHovered ? 1280 : 1024;
+          const step = Math.round((target - prev) * 0.1 + (Math.random() - 0.5) * 8);
+          return Math.max(980, Math.min(1400, prev + step));
         });
-      }, 50);
+      }, 80);
     } else {
       interval = setInterval(() => {
-        setSpeed((prev) => (prev > 0 ? Math.max(0, prev - 4) : 0));
-        setRpm((prev) => (prev > 1000 ? Math.max(1000, prev - 150) : 1000));
-        setGear(1);
-      }, 50);
+        setLatency((prev) => (prev > 0 ? Math.max(0, prev - 3) : 0));
+        setThroughput((prev) => (prev > 0 ? +(prev - 0.1).toFixed(2) : 0));
+        setActiveSockets((prev) => (prev > 0 ? Math.max(0, prev - 40) : 0));
+      }, 80);
     }
     return () => clearInterval(interval);
-  }, [isEngineOn, isHovered, speed]);
+  }, [isStreaming, isHovered]);
 
   useEffect(() => {
     const historyInterval = setInterval(() => {
-      setSpeedHistory((prev) => {
-        const currentSpeed = isEngineOn ? speed : 0;
-        return [...prev.slice(1), currentSpeed];
+      setTelemetryHistory((prev) => {
+        const currentVal = isStreaming ? latency : 0;
+        return [...prev.slice(1), currentVal];
       });
     }, 150);
     return () => clearInterval(historyInterval);
-  }, [speed, isEngineOn]);
+  }, [latency, isStreaming]);
 
-  const maxRpm = 10000;
-  const rpmRotation = ((rpm - 1000) / (maxRpm - 1000)) * 240 - 120;
+  const maxLatency = 70;
+  const gaugePercent = Math.min(1, Math.max(0, latency / maxLatency));
+  const gaugeRotation = gaugePercent * 240 - 120;
 
   return (
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => { setIsHovered(true); globalSynth.playTone(196.00); }}
+      onMouseEnter={() => { setIsHovered(true); globalSynth.playTone(261.63); }}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => { setIsHovered(true); globalSynth.playTone(196.00); }}
+      onTouchStart={() => { setIsHovered(true); globalSynth.playTone(261.63); }}
       onTouchEnd={() => setIsHovered(false)}
       onTouchCancel={() => setIsHovered(false)}
-      className={`glow-card-rust border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none transition-all duration-300 ${
-        isEngineOn ? "engine-rumble shadow-[0_0_30px_rgba(217,119,6,0.08)] border-rust/15" : ""
+      className={`glow-card-acid border border-white/5 bg-zinc-950/60 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden select-none transition-all duration-300 ${
+        isStreaming ? "shadow-[0_0_30px_rgba(217,249,157,0.06)] border-acid/15" : ""
       }`}
     >
       <div className="glow-bg" />
@@ -1232,23 +1249,23 @@ function RiderDashboard() {
       
       <div className="flex justify-between items-center relative z-10 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
         <span className="flex items-center gap-1.5">
-          <Bike className="h-3.5 w-3.5 text-rust animate-pulse" /> DUSK RIDER DASH
+          <Activity className="h-3.5 w-3.5 text-acid animate-pulse" /> CLUSTER TELEMETRY
         </span>
         <button
           onClick={() => {
-            const nextOn = !isEngineOn;
-            setIsEngineOn(nextOn);
-            globalSynth.playTone(nextOn ? 392.00 : 220.00);
+            const nextStreaming = !isStreaming;
+            setIsStreaming(nextStreaming);
+            globalSynth.playTone(nextStreaming ? 440.00 : 220.00);
           }}
           onMouseEnter={() => globalSynth.playTick()}
           className={`px-3 py-1 rounded-full border text-[8px] transition-all duration-300 font-bold cursor-pointer ${
-            isEngineOn
-              ? "border-rust bg-rust/20 text-rust shadow-[0_0_12px_rgba(217,119,6,0.3)] animate-pulse"
+            isStreaming
+              ? "border-acid bg-acid/20 text-acid shadow-[0_0_12px_rgba(217,249,157,0.3)] animate-pulse"
               : "border-white/10 bg-white/5 text-zinc-400 hover:text-white"
           }`}
-          data-cursor-text={isEngineOn ? "STOP" : "START"}
+          data-cursor-text={isStreaming ? "PAUSE" : "RESUME"}
         >
-          {isEngineOn ? "IGNITION ON" : "IGNITION OFF"}
+          {isStreaming ? "STREAM: ACTIVE" : "STREAM: PAUSED"}
         </button>
       </div>
 
@@ -1271,9 +1288,9 @@ function RiderDashboard() {
               cy="50"
               r="40"
               fill="transparent"
-              stroke="var(--color-rust)"
+              stroke="var(--color-acid)"
               strokeWidth="4"
-              strokeDasharray={`${((rpm - 1000) / 9000) * 180} 360`}
+              strokeDasharray={`${gaugePercent * 180} 360`}
               strokeLinecap="round"
               className="transform rotate-30 origin-center opacity-40 blur-[1px] transition-all duration-75"
             />
@@ -1282,9 +1299,9 @@ function RiderDashboard() {
               cy="50"
               r="40"
               fill="transparent"
-              stroke="var(--color-rust)"
+              stroke="var(--color-acid)"
               strokeWidth="3"
-              strokeDasharray={`${((rpm - 1000) / 9000) * 180} 360`}
+              strokeDasharray={`${gaugePercent * 180} 360`}
               strokeLinecap="round"
               className="transform rotate-30 origin-center transition-all duration-75"
             />
@@ -1292,98 +1309,104 @@ function RiderDashboard() {
           
           <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
             <span className="font-mono text-xl font-bold leading-none tracking-tight text-white">
-              {isEngineOn ? speed : "0"}
+              {isStreaming ? latency : "--"}
             </span>
-            <span className="text-[7px] font-mono text-zinc-500 uppercase tracking-widest mt-0.5">KM/H</span>
+            <span className="text-[7px] font-mono text-zinc-500 uppercase tracking-widest mt-0.5">p99 (ms)</span>
           </div>
 
           <div
             className="absolute inset-0 transition-transform duration-75 ease-out pointer-events-none"
-            style={{ transform: `rotate(${rpmRotation}deg)` }}
+            style={{ transform: `rotate(${gaugeRotation}deg)` }}
           >
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-8 bg-rust rounded-full shadow-[0_0_8px_var(--color-rust)]" />
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-0.5 h-8 bg-acid rounded-full shadow-[0_0_8px_var(--color-acid)]" />
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 font-mono text-[9px] w-24">
+        <div className="flex flex-col gap-2 font-mono text-[9px] w-28">
           <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
-            <span className="text-zinc-500">RPM:</span>
-            <span className={`font-bold transition-all ${isEngineOn ? "text-rust" : "text-zinc-400"}`}>
-              {isEngineOn ? rpm : "0"}
+            <span className="text-zinc-500">NODES:</span>
+            <span className="text-white font-bold">16 ACTIVE</span>
+          </div>
+          <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
+            <span className="text-zinc-500">SOCKETS:</span>
+            <span className={`font-bold transition-all ${isStreaming ? "text-acid" : "text-zinc-400"}`}>
+              {isStreaming ? activeSockets.toLocaleString() : "--"}
             </span>
           </div>
           <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
-            <span className="text-zinc-500">GEAR:</span>
-            <span className={`font-bold ${isEngineOn ? "text-white animate-pulse" : "text-zinc-400"}`}>
-              {isEngineOn ? gear : "-"}
+            <span className="text-zinc-500">INGEST:</span>
+            <span className="text-emerald-400 font-bold">
+              {isStreaming ? `${throughput} MB/s` : "0.0 MB/s"}
             </span>
           </div>
           <div className="bg-zinc-950/60 border border-white/5 px-2 py-1 rounded flex justify-between items-center">
-            <span className="text-zinc-500">THR:</span>
-            <span className="text-white font-bold">{isHovered && isEngineOn ? "REVVED" : "IDLE"}</span>
+            <span className="text-zinc-500">BUFFER:</span>
+            <span className={`font-bold ${isStreaming ? "text-emerald-400" : "text-zinc-500"}`}>
+              {isStreaming ? "99.8% OK" : "STANDBY"}
+            </span>
           </div>
         </div>
       </div>
 
       <div className="relative z-10 border-t border-white/5 pt-4">
         <div className="flex justify-between items-center font-mono text-[8px] text-zinc-500 uppercase tracking-widest mb-1.5">
-          <span>Active Route: Dhaka - DIU</span>
-          <span className={`${isEngineOn ? "text-emerald-400 animate-pulse font-bold" : "text-zinc-600"}`}>
-            {isEngineOn ? "● ACTIVE TRACKING" : "STANDBY"}
+          <span>Ingestion Topic: Stream-01</span>
+          <span className={`${isStreaming ? "text-emerald-400 animate-pulse font-bold" : "text-zinc-600"}`}>
+            {isStreaming ? "● TELEMETRY STREAMING" : "STREAM PAUSED"}
           </span>
         </div>
         <div className="h-10 w-full bg-zinc-950/40 rounded border border-white/5 relative overflow-hidden flex items-center px-2">
           <svg className="w-full h-full text-zinc-800" viewBox="0 0 200 40">
             <defs>
-              <linearGradient id="speed-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-rust)" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="var(--color-rust)" stopOpacity="0" />
+              <linearGradient id="telemetry-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-acid)" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="var(--color-acid)" stopOpacity="0" />
               </linearGradient>
             </defs>
             <path
-              id="route-path"
-              d="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
+              id="baseline-path"
+              d="M10 20 C 50 10, 80 30, 110 20 S 160 10, 190 20"
               fill="none"
               stroke="currentColor"
               strokeWidth="1"
               strokeDasharray="4 4"
-              className="opacity-40"
+              className="opacity-30"
             />
-            {isEngineOn && (
+            {isStreaming && (
               <motion.path
-                d="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
+                d="M10 20 C 50 10, 80 30, 110 20 S 160 10, 190 20"
                 fill="none"
-                stroke="rgba(255,255,255,0.1)"
+                stroke="rgba(255,255,255,0.12)"
                 strokeWidth="1"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={{
-                  duration: 6,
+                  duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
               />
             )}
-            {/* Speed History Telemetry Line */}
+            {/* Time-Series Telemetry Line */}
             <path
-              d={`M ${speedHistory.map((s, idx) => `${10 + idx * 9} ${32 - (s / 140) * 22}`).join(" L ")}`}
+              d={`M ${telemetryHistory.map((v, idx) => `${10 + idx * 9} ${34 - (v / 70) * 24}`).join(" L ")}`}
               fill="none"
-              stroke="var(--color-rust)"
+              stroke="var(--color-acid)"
               strokeWidth="1.5"
-              className="transition-all duration-150 ease-out opacity-80"
-              style={{ filter: "drop-shadow(0 0 4px var(--color-rust))" }}
+              className="transition-all duration-150 ease-out opacity-90"
+              style={{ filter: "drop-shadow(0 0 4px var(--color-acid))" }}
             />
-            {/* Ambient fill underneath speed graph */}
+            {/* Area Fill */}
             <path
-              d={`M 10 35 L ${speedHistory.map((s, idx) => `${10 + idx * 9} ${32 - (s / 140) * 22}`).join(" L ")} L 181 35 Z`}
-              fill="url(#speed-gradient)"
-              className="opacity-20 transition-all duration-150 ease-out"
+              d={`M 10 36 L ${telemetryHistory.map((v, idx) => `${10 + idx * 9} ${34 - (v / 70) * 24}`).join(" L ")} L 181 36 Z`}
+              fill="url(#telemetry-gradient)"
+              className="opacity-25 transition-all duration-150 ease-out"
             />
-            {isEngineOn && (
+            {isStreaming && (
               <circle r="2.5" fill="var(--color-acid)" className="shadow-[0_0_8px_var(--color-acid)]">
                 <animateMotion
-                  path="M10 20 C 50 0, 80 40, 110 20 S 160 0, 190 20"
-                  dur="6s"
+                  path="M10 20 C 50 10, 80 30, 110 20 S 160 10, 190 20"
+                  dur="4s"
                   repeatCount="indefinite"
                 />
               </circle>
@@ -1681,7 +1704,7 @@ function Skills() {
             <h2 className="mt-2 font-display text-4xl md:text-6xl text-zinc-100"><ScrambleText text="The toolkit." /></h2>
           </div>
           <div className="hidden font-mono text-xs uppercase tracking-widest text-zinc-500 md:block">
-            04 disciplines
+            06 modules
           </div>
         </div>
 
@@ -1692,6 +1715,8 @@ function Skills() {
           {skills.map((s, i) => (
             <SkillCard key={s.title} s={s} i={i} />
           ))}
+          <TelemetryDashboard />
+          <AIPipelineSimulator />
         </motion.div>
       </div>
     </motion.section>
@@ -1708,7 +1733,7 @@ function ProjectPreview({ index }: { index: number }) {
             <span className="bg-acid/20 text-acid px-1.5 py-0.5 rounded text-[8px] font-bold">GEMINI 2.5</span>
           </div>
           <div className="my-auto space-y-1.5">
-            <div className="text-[7px] text-zinc-500 uppercase tracking-wider">Active AI Pipeline:</div>
+            <div className="text-[7px] text-zinc-500 uppercase tracking-wider">Multi-Agent Orchestration:</div>
             <div className="grid grid-cols-4 gap-1 text-center text-[7px]">
               <div className="border border-white/10 p-1 rounded bg-white/5 flex flex-col justify-center">
                 <span className="text-acid font-bold">AG-01</span>
@@ -1728,38 +1753,39 @@ function ProjectPreview({ index }: { index: number }) {
               </div>
             </div>
             <div className="flex justify-between items-center text-[7px] text-zinc-400 border-t border-white/5 pt-1.5">
-              <span>SMM Scheduler</span>
+              <span>Async FastAPI Dispatcher</span>
               <span className="text-emerald-400 font-bold animate-pulse">● ACTIVE LOOP</span>
             </div>
           </div>
-          <div className="text-[6px] text-zinc-600">Multi-Channel Publishing System</div>
+          <div className="text-[6px] text-zinc-500">Autonomous Multi-Agent Infrastructure</div>
         </div>
       );
     case 1:
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-rust font-bold">CORIDE HUB</span>
-            <span className="text-zinc-500 text-[8px]">@diu.edu.bd</span>
+            <span className="text-acid font-bold">CORIDE ENGINE</span>
+            <span className="text-zinc-400 text-[8px] bg-white/5 px-1 py-0.5 rounded">SOCKET.IO</span>
           </div>
-          <div className="my-auto space-y-2">
+          <div className="my-auto space-y-1.5">
             <div className="flex justify-between text-zinc-400 text-[8px]">
-              <span>WebSocket Stream</span>
-              <span className="text-rust animate-pulse">● Live</span>
+              <span>Geospatial Stream</span>
+              <span className="text-acid animate-pulse">● Live Tracking</span>
             </div>
             <div className="bg-white/5 border border-white/5 p-1.5 rounded space-y-1 text-[7px] text-zinc-400">
               <div className="flex justify-between">
-                <span>Rider Lat:</span>
-                <span className="text-white">23.8759° N</span>
+                <span>Coordinates:</span>
+                <span className="text-white">23.8759° N, 90.3795° E</span>
               </div>
               <div className="flex justify-between">
-                <span>Fare Share:</span>
-                <span className="text-rust font-bold">৳ Base / (1+N)</span>
+                <span>Fare Partitioning:</span>
+                <span className="text-acid font-bold">৳ Base / (1+N) Pool</span>
               </div>
             </div>
           </div>
-          <div className="text-[7px] text-center text-zinc-500 border-t border-white/5 pt-1">
-            PostgreSQL · Express · Flutter
+          <div className="text-[7px] text-zinc-500 border-t border-white/5 pt-1 flex justify-between">
+            <span>Route Matcher</span>
+            <span>PostgreSQL · Flutter</span>
           </div>
         </div>
       );
@@ -1767,19 +1793,28 @@ function ProjectPreview({ index }: { index: number }) {
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-rust font-bold">INSTARISE</span>
-            <span className="bg-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[7px] font-bold">RUNNING</span>
+            <span className="text-rust font-bold">SATHEE (ABHAY)</span>
+            <span className="bg-rust/20 text-rust px-1.5 py-0.5 rounded text-[7px] font-bold">FAULT-TOLERANT</span>
           </div>
           <div className="my-auto space-y-1.5">
-            <div className="font-mono text-[7px] text-zinc-500 space-y-0.5">
-              <p className="text-zinc-300">$ node --growth-engine</p>
-              <p className="text-rust">[OK] Queue: 120 target profiles</p>
-              <p className="text-zinc-400">[DELAY] Throttled 120s (Anti-Ban)</p>
-              <p className="text-emerald-400">[GROWTH] Engagement +28.4%</p>
+            <div className="font-mono text-[7px] text-zinc-400 space-y-1 bg-white/5 p-1.5 rounded border border-white/5">
+              <div className="flex justify-between">
+                <span>Hardware Trigger:</span>
+                <span className="text-emerald-400 font-bold">POWER_3X [ARMED]</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Sensor Heuristics:</span>
+                <span className="text-white">IMU Variance &lt; 0.05g</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Failover Broadcast:</span>
+                <span className="text-rust font-bold">2G SMS [ZERO-DATA]</span>
+              </div>
             </div>
           </div>
-          <div className="text-[7px] text-zinc-600 border-t border-white/5 pt-1">
-            Autonomous Social Growth Engine
+          <div className="text-[7px] text-zinc-500 border-t border-white/5 pt-1 flex justify-between">
+            <span>Critical Watch</span>
+            <span>Native Kotlin Background Service</span>
           </div>
         </div>
       );
@@ -1788,50 +1823,84 @@ function ProjectPreview({ index }: { index: number }) {
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
             <span className="text-acid font-bold">MOTOFILE VAULT</span>
-            <span className="text-zinc-500">AES-256</span>
+            <span className="text-zinc-400 text-[8px] bg-white/5 px-1 py-0.5 rounded">AES-256-GCM</span>
           </div>
           <div className="my-auto space-y-1.5">
-            <div className="border border-white/5 bg-white/5 p-1.5 rounded flex items-center justify-between">
-              <div>
-                <p className="text-white text-[8px]">Tax Token.pdf</p>
-                <p className="text-zinc-500 text-[6px]">Expires 14-Dec-2026</p>
+            <div className="border border-white/5 bg-white/5 p-1.5 rounded space-y-1 text-[7px]">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400">Keystore Level:</span>
+                <span className="text-acid font-bold">HARDWARE_ISOLATED</span>
               </div>
-              <span className="text-acid font-bold">✓ SECURE</span>
-            </div>
-            <div className="border border-white/5 bg-white/5 p-1.5 rounded flex items-center justify-between">
-              <div>
-                <p className="text-white text-[8px]">Driving License.pdf</p>
-                <p className="text-zinc-500 text-[6px]">Verified ID 4893</p>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400">Local DB:</span>
+                <span className="text-white">Encrypted SQLCipher</span>
               </div>
-              <span className="text-acid font-bold">✓ SECURE</span>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400">Render Engine:</span>
+                <span className="text-emerald-400">Sandboxed PDF Canvas</span>
+              </div>
             </div>
           </div>
-          <div className="text-[6px] text-center text-zinc-500">Secure Flutter Docs Locker</div>
+          <div className="text-[6px] text-zinc-500 border-t border-white/5 pt-1">
+            Biometric Keystore Authentication (Fingerprint/FaceID)
+          </div>
         </div>
       );
     case 4:
       return (
         <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
           <div className="flex justify-between items-center border-b border-white/10 pb-2">
-            <span className="text-rust font-bold">BIKESHOP BD</span>
-            <span className="text-zinc-500">LIVE RETAIL</span>
+            <span className="text-rust font-bold">DESKBOT IoT</span>
+            <span className="bg-white/5 text-zinc-300 text-[8px] px-1.5 py-0.5 rounded">ESP32/ESP8266</span>
           </div>
           <div className="my-auto space-y-1.5">
-            <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-white">Suzuki Gixxer SF</span>
-              <span className="text-rust font-bold">৳ 2,45,000</span>
-            </div>
-            <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-white">Yamaha R15 V4</span>
-              <span className="text-rust font-bold">৳ 3,85,000</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white">Accessories Kit</span>
-              <span className="text-rust font-bold">৳ 12,500</span>
+            <div className="bg-white/5 border border-white/5 p-1.5 rounded space-y-1 text-[7px] text-zinc-400">
+              <div className="flex justify-between">
+                <span>Display Bus:</span>
+                <span className="text-white">I2C SSD1306 @ 400kHz</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Embedded Daemon:</span>
+                <span className="text-rust font-bold">Async HTTP / Telemetry WS</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Hardware State:</span>
+                <span className="text-emerald-400 font-bold">ONLINE · 3.3V REG</span>
+              </div>
             </div>
           </div>
-          <div className="text-[7px] text-zinc-500 border-t border-white/5 pt-1">
-            Motorcycle & Spare Parts E-Shop
+          <div className="text-[7px] text-zinc-500 border-t border-white/5 pt-1 flex justify-between">
+            <span>C++ Embedded Firmware</span>
+            <span>Real-Time Hardware Bridge</span>
+          </div>
+        </div>
+      );
+    case 5:
+      return (
+        <div className="w-full h-full bg-zinc-950 p-4 font-mono text-[9px] flex flex-col justify-between border border-white/10 rounded-lg">
+          <div className="flex justify-between items-center border-b border-white/10 pb-2">
+            <span className="text-acid font-bold">SMART TRACKER</span>
+            <span className="bg-acid/20 text-acid px-1.5 py-0.5 rounded text-[8px] font-bold">MODERN C++</span>
+          </div>
+          <div className="my-auto space-y-1.5">
+            <div className="bg-white/5 border border-white/5 p-1.5 rounded space-y-1 text-[7px] text-zinc-400">
+              <div className="flex justify-between">
+                <span>Scheduler:</span>
+                <span className="text-white">Deterministic Min-Heap</span>
+              </div>
+              <div className="flex justify-between">
+                <span>State Storage:</span>
+                <span className="text-acid font-bold">Binary WAL Serialization</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Clock Jitter:</span>
+                <span className="text-emerald-400 font-bold">&lt; 0.02ms Drift</span>
+              </div>
+            </div>
+          </div>
+          <div className="text-[7px] text-zinc-500 border-t border-white/5 pt-1 flex justify-between">
+            <span>Memory-Efficient Algorithms</span>
+            <span>Daemon Core</span>
           </div>
         </div>
       );
@@ -1890,7 +1959,7 @@ function Projects() {
             </h2>
           </div>
           <div className="hidden font-mono text-xs uppercase tracking-widest text-zinc-500 md:block">
-            05 shipped
+            06 production systems
           </div>
         </div>
 
